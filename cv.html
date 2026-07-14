@@ -134,7 +134,9 @@ aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
   .job-head, ul.achievements li, .job-context, aside .block { break-inside: avoid; }
   @page { size: A4; margin: 13mm 15mm; }
 }
-/* Archipelago — locked LIGHT build. Full token set; wins over any viewer theme toggle. */
+/* Archipelago — PREVIEW build (the artifact): light/dark chosen by on-page buttons
+   via data-mode on <html>. Order matters: the explicit mode blocks come last so they
+   beat the viewer-theme selectors above them. */
 :root,
 :root[data-theme="dark"],
 :root[data-theme="light"] {
@@ -145,12 +147,13 @@ aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
   --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
   --mono: "SF Mono", Menlo, Consolas, monospace;
 }
-@media print {
-  :root,
-  :root[data-theme="dark"],
-  :root[data-theme="light"] {
-    --paper: #FFFFFF; --tag-bg: #EDF2FA; --ph-bg: #F2F6FD;
-  }
+:root[data-mode="dark"] {
+  --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+  --hairline: #24344E; --tag-bg: #16233A; --ph-bg: rgba(125, 167, 242, 0.08);
+}
+:root[data-mode="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8; --ph-bg: rgba(37, 99, 235, 0.05);
 }
 </style>
 <!-- GENERATED body fragment from data/cv.yaml — assembled into the final pages by build.sh -->
@@ -172,7 +175,7 @@ aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     half at Rebtel in Stockholm building distributed telecom and payment systems —
     federated GraphQL, gRPC microservices, event-driven flows, and the CI/CD and test
     infrastructure that keeps them shippable. Comfortable owning a change end to end
-    across a legacy monolith and a modern microservice estate, and driving the cross-team
+    across a large microservice estate, and driving the cross-team
     initiative to define AI-assisted development workflows.
   </p>
 
@@ -188,16 +191,15 @@ aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
           </div>
           <p class="job-context">
             Telecommunications platform for international calling, mobile top-ups, money
-            transfer and eSIM, serving millions of users. Backend estate of ~19
-            repositories: a .NET Framework monolith plus .NET 10 microservices behind a
-            federated GraphQL gateway, on Kubernetes (AKS).
+            transfer and eSIM, serving millions of users. Backend estate of ~19 repositories:
+            .NET 10 microservices behind a federated GraphQL gateway, on Kubernetes (AKS).
           </p>
           <ul class="achievements">
             <li>
               <strong>New financial core.</strong> Primary author of the company's new
               double-entry Ledger service — charges, reservations, refunds, VAT and
               multi-currency — and led the multi-year migration of the legacy accounting
-              subsystem onto it across the monolith and every consuming service,
+              subsystem onto it across every consuming service,
               including the refund-architecture ADR.
             </li>
             <li>
@@ -344,3 +346,67 @@ aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     </aside>
   </div>
 </div>
+<!-- Preview-only chrome: light/dark buttons. Appended by build.sh to the preview build.
+     Do NOT print the artifact — claude.ai wraps it in site chrome; PDFs come from the
+     local light/dark files (see README). -->
+<style>
+  .mode-picker {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+  .mode-picker button {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .mode-picker button:hover { border-color: var(--hairline); }
+  .mode-picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .mode-picker button.active { background: var(--accent); color: var(--paper); }
+  .mode-picker .pdf-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--paper);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .mode-picker .pdf-btn:hover { border-color: var(--accent); color: var(--accent); }
+  @media print { .mode-picker { display: none; } }
+</style>
+<div class="mode-picker" role="group" aria-label="Color mode">
+  <button type="button" data-m="light">Light</button>
+  <button type="button" data-m="dark">Dark</button>
+  <a class="pdf-btn" href="https://corentin-sueur.github.io/cv-corentin-sueur.pdf" download>PDF ↓</a>
+</div>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'cv-mode';
+    var buttons = document.querySelectorAll('.mode-picker button');
+    function set(m) {
+      root.setAttribute('data-mode', m);
+      try { localStorage.setItem(KEY, m); } catch (e) {}
+      buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
+    }
+    var saved = 'light';
+    try { saved = localStorage.getItem(KEY) || saved; } catch (e) {}
+    set(saved);
+    buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
+  })();
+</script>
