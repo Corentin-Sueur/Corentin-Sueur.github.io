@@ -296,6 +296,7 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 .diagram .d-rail { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; }
 .diagram .d-label { fill: var(--ink); }
 .diagram .d-note { fill: var(--muted); font-size: 10.5px; }
+.diagram .d-cmd { fill: var(--accent); font-size: 10px; }
 .diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
 .diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .diagram figcaption {
@@ -391,8 +392,11 @@ footer {
               <text x="660" y="30" text-anchor="middle" class="d-note">human owns review &amp; merge</text>
               <line x1="660" y1="36" x2="660" y2="46" class="d-arrow"/>
 
+              <text x="67" y="116" text-anchor="middle" class="d-cmd">/start-ticket</text>
+              <text x="660" y="116" text-anchor="middle" class="d-cmd">/open-pr</text>
+
               <rect x="8" y="150" width="704" height="44" rx="8" class="d-rail"/>
-              <text x="360" y="176" text-anchor="middle" class="d-label">skills — architecture patterns · SDLC workflows · guardrails &amp; sandbox</text>
+              <text x="360" y="176" text-anchor="middle" class="d-label">skills — workflow spines · architecture patterns · guardrails &amp; sandbox</text>
 
               <line x1="217" y1="144" x2="217" y2="102" class="d-arrow"/>
               <line x1="367" y1="144" x2="367" y2="102" class="d-arrow"/>
@@ -421,23 +425,78 @@ footer {
           against real tasks before they ship, and corrected when the codebase
           moves on.
         </p>
-        <h3>Workflow, end to end</h3>
+        <h3>Workflow skills — a spine for the lifecycle</h3>
         <p>
-          On top of the patterns sit workflow skills that walk an agent through our
-          software lifecycle — from feature planning and ticket writing (tickets
-          are authored to be AI-ready) through implementation, self-review, and an
-          opened pull request. Deterministic steps are scaffolded with commands and
-          advisory git hooks, so the repeatable parts stay repeatable and human
-          judgment is spent where it matters: review.
+          The newer layer is a set of orchestrator skills that map the development
+          lifecycle phase by phase: planning a feature into small, AI-ready tickets
+          (each with its test level decided up front), implementing a ticket from
+          cold intake to an opened pull request, and a machine pre-review that runs
+          before any human spends attention — tests green as a precondition, every
+          acceptance criterion checked against evidence, scope and pattern adherence
+          challenged by a deliberate skeptic pass. Each orchestrator owns its spine
+          and explicitly delegates every "how" to the pattern skills, so a piece of
+          knowledge lives in exactly one place.
         </p>
-        <h3>Telemetry and sandboxing</h3>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 296" role="img" aria-label="Diagram: a tier of workflow skills (plan, ticket, implement, review, ship) delegates to a tier of pattern skills; a deterministic scaffold of commands, hooks and templates sits beneath; every skill is eval-tested.">
+            <g font-family="SF Mono, Menlo, monospace" font-size="11.5">
+              <text x="25" y="18" class="d-note">workflow skills — one orchestrator per phase, each owns a spine</text>
+              <rect x="25"  y="30" width="110" height="40" rx="8" class="d-box"/>
+              <text x="80"  y="54" text-anchor="middle" class="d-label">plan</text>
+              <rect x="165" y="30" width="110" height="40" rx="8" class="d-box"/>
+              <text x="220" y="54" text-anchor="middle" class="d-label">ticket</text>
+              <rect x="305" y="30" width="110" height="40" rx="8" class="d-box"/>
+              <text x="360" y="54" text-anchor="middle" class="d-label">implement</text>
+              <rect x="445" y="30" width="110" height="40" rx="8" class="d-box"/>
+              <text x="500" y="54" text-anchor="middle" class="d-label">review</text>
+              <rect x="585" y="30" width="110" height="40" rx="8" class="d-box"/>
+              <text x="640" y="54" text-anchor="middle" class="d-label">ship</text>
+              <line x1="135" y1="50" x2="159" y2="50" class="d-arrow"/>
+              <line x1="275" y1="50" x2="299" y2="50" class="d-arrow"/>
+              <line x1="415" y1="50" x2="439" y2="50" class="d-arrow"/>
+              <line x1="555" y1="50" x2="579" y2="50" class="d-arrow"/>
+
+              <line x1="220" y1="78" x2="220" y2="132" class="d-arrow"/>
+              <line x1="360" y1="78" x2="360" y2="132" class="d-arrow"/>
+              <line x1="500" y1="78" x2="500" y2="132" class="d-arrow"/>
+              <text x="376" y="110" class="d-note">delegates every "how"</text>
+
+              <rect x="25" y="140" width="670" height="44" rx="8" class="d-box"/>
+              <text x="360" y="166" text-anchor="middle" class="d-label">pattern skills — APIs · data · events · state machines · testing · delivery</text>
+
+              <rect x="25" y="214" width="670" height="40" rx="8" class="d-rail"/>
+              <text x="360" y="239" text-anchor="middle" class="d-label">deterministic scaffold — slash commands · git hooks · templates (warn, never block)</text>
+
+              <text x="360" y="284" text-anchor="middle" class="d-note">every skill ships eval-tested — red → green on real tasks · format ≠ behavior</text>
+            </g>
+          </svg>
+          <figcaption>Two tiers of encoded knowledge, on a scaffold of plain scripts where judgment adds nothing.</figcaption>
+        </figure>
+
+        <h3>Determinism where judgment adds nothing</h3>
         <p>
-          Two things made the practice trustworthy. Usage telemetry — OpenTelemetry
+          Not everything deserves a model's creativity. The repeatable endpoints of
+          the workflow — cutting a correctly named branch, moving the ticket through
+          its lifecycle, scaffolding the pull-request body — are handled by committed
+          scripts, slash commands, git hooks and templates. The principle: skills
+          describe, scaffolding executes. There is a ladder of enforcement, from
+          templates up through hooks to CI and branch protection, and we deliberately
+          sit at the advisory end of it — tooling that warns gets adopted; tooling
+          that blocks gets bypassed.
+        </p>
+        <h3>Telemetry, sandboxing — and evals</h3>
+        <p>
+          Three things made the practice trustworthy. Usage telemetry — OpenTelemetry
           from the tooling into our dashboards — shows which skills get used and
           where agents struggle, so improvement is driven by data rather than
-          anecdotes. And a strict OS-level sandbox standard for agent sessions means
+          anecdotes. A strict OS-level sandbox standard for agent sessions means
           autonomy doesn't require faith: the blast radius is bounded by
-          construction.
+          construction. And skills ship the way code does — evaluated red-to-green
+          against real tasks before they land, with negative results respected. One
+          experiment taught us that reformatting a workflow as a formal state table
+          looked rigorous but changed nothing the evals could measure; what mattered
+          was stating the guard conditions completely. Format is not behavior.
         </p>
       </div>
     </section>
@@ -451,6 +510,7 @@ footer {
           <li><strong>Review is the human's job.</strong> The goal is not unattended code; it's a higher-leverage engineer who owns judgment, direction and the merge button.</li>
           <li><strong>Measure it.</strong> If you can't see usage and outcomes, you have a vibe, not a practice.</li>
           <li><strong>Treat prompts and skills as artifacts.</strong> Versioned, reviewed, evaluated — the same discipline as production code.</li>
+          <li><strong>Advisory beats blocking.</strong> Guardrails that warn get adopted; gates that block get bypassed. Save the hard gates for CI and the merge button.</li>
         </ul>
       </div>
     </section>
@@ -459,10 +519,11 @@ footer {
       <h2>Working on</h2>
       <div class="section-body prose">
         <p>
-          Multi-agent orchestration for large migrations, evaluation harnesses for
-          skills, and the question I keep coming back to: what does a software team
-          look like when the bottleneck is review and intent, not typing? Happy to
-          compare notes — <a href="#" class="email-link">email me</a>.
+          Extending the lifecycle spine toward release and operations, multi-agent
+          orchestration for large migrations, and the question I keep coming back
+          to: what does a software team look like when the bottleneck is review and
+          intent, not typing? Happy to compare notes —
+          <a href="#" class="email-link">email me</a>.
         </p>
       </div>
     </section>
