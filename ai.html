@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI practice — Corentin Sueur</title>
+<meta name="description" content="Field notes on making AI-assisted development an engineering team practice: skills platforms, workflows, telemetry, sandboxing.">
+<style>
+/* Personal site — Archipelago tokens, nautical-chart editorial layout.
+   Modes: default follows prefers-color-scheme; [data-mode] (set by the Light/Dark
+   buttons) overrides in both directions. Signature: the depth-contour hero chart. */
+:root {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+  --display: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+    --hairline: #24344E; --tag-bg: #16233A;
+    --chart-line: rgba(125, 167, 242, 0.20);
+    --chart-text: rgba(143, 160, 188, 0.60);
+  }
+}
+:root[data-mode="dark"] {
+  --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+  --hairline: #24344E; --tag-bg: #16233A;
+  --chart-line: rgba(125, 167, 242, 0.20);
+  --chart-text: rgba(143, 160, 188, 0.60);
+}
+:root[data-mode="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+}
+
+html { background: var(--paper); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 32px 72px; }
+@media (max-width: 640px) { .wrap { padding: 20px 20px 56px; } }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+a.wordmark { color: var(--ink); }
+a.wordmark:hover { text-decoration: none; color: var(--accent); }
+.top-nav { margin-left: auto; margin-right: 16px; }
+.top-nav a {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.top-nav a:hover { color: var(--accent); text-decoration: none; }
+.top-nav a[aria-current="page"] { color: var(--accent); }
+.mode-picker {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--tag-bg);
+}
+.mode-picker button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mode-picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mode-picker button.active { background: var(--accent); color: var(--paper); }
+
+/* Hero with the chart behind it */
+.hero {
+  position: relative;
+  padding: 72px 0 96px;
+  margin-bottom: 64px;
+}
+#chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero > :not(#chart) { position: relative; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(34px, 6.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.thesis { font-size: 19px; color: var(--muted); max-width: 52ch; margin-bottom: 30px; }
+.now {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+.now strong { color: var(--accent); font-weight: 600; }
+
+.links { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.links a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.links a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.links a.cv-link { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.links a.cv-link:hover { opacity: 0.9; }
+
+/* Label-rail sections */
+.section {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 24px 56px;
+  padding: 56px 0;
+  border-top: 1px solid var(--hairline);
+}
+@media (max-width: 760px) { .section { grid-template-columns: 1fr; padding: 40px 0; } }
+h2 {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+h2::before { content: "— "; }
+.section-body { min-width: 0; }
+
+#about p { font-size: 18px; max-width: 60ch; }
+
+.story + .story { margin-top: 44px; }
+.story-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.01em; margin-bottom: 10px; }
+.story p { max-width: 62ch; }
+
+.timeline { display: flex; flex-direction: column; gap: 18px; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: baseline;
+}
+.timeline .years {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.timeline .what { max-width: 64ch; }
+.timeline strong { font-family: var(--display); font-weight: 600; }
+@media (max-width: 520px) {
+  .timeline .row { grid-template-columns: 1fr; gap: 2px; }
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--tag-bg);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.beyond-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+}
+@media (max-width: 900px) { .beyond-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .beyond-grid { grid-template-columns: 1fr; } }
+.photo-slot {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(circle at 28% 72%, transparent 0 22px, var(--chart-line) 22px 23px),
+    repeating-radial-gradient(circle at 78% 20%, transparent 0 30px, var(--chart-line) 30px 31px),
+    var(--tag-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.photo-slot.filled { padding: 0; }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-slot span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+#beyond h3 { font-size: 20px; }
+#beyond p { max-width: 48ch; }
+
+/* Prose pages (ai.html) */
+.prose { max-width: 68ch; }
+.prose > p { margin-bottom: 18px; font-size: 17px; }
+.prose h3 { margin-top: 40px; margin-bottom: 12px; }
+.prose ul { margin: 0 0 18px 0; padding-left: 20px; }
+.prose li { margin-bottom: 8px; }
+.page-hero { padding: 48px 0 40px; }
+.page-hero h1 { font-size: clamp(30px, 5vw, 48px); max-width: 22ch; }
+
+footer {
+  border-top: 2px solid var(--accent);
+  padding-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.colophon { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<!-- AI practice page — assembled into output/site/ai.html by build.sh -->
+<div class="wrap">
+  <header class="top">
+    <a class="wordmark" href="index.html">Corentin Sueur</a>
+    <nav class="top-nav" aria-label="Pages">
+      <a href="ai.html" aria-current="page">AI practice</a>
+    </nav>
+    <div class="mode-picker" role="group" aria-label="Color mode">
+      <button type="button" data-m="light">Light</button>
+      <button type="button" data-m="dark">Dark</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">AI practice — field notes</p>
+      <h1>Making AI an engineering team practice, not a party trick.</h1>
+      <p class="thesis">
+        What I've learned driving AI-assisted development across backend teams:
+        the wins come from workflows and encoded knowledge, not from typing faster.
+      </p>
+    </section>
+
+    <section id="thesis" class="section">
+      <h2>The idea</h2>
+      <div class="section-body prose">
+        <p>
+          Most teams meet AI coding tools the same way: everyone gets a license,
+          results vary wildly by person, and six months later nobody can say what
+          actually changed. The individual-productivity framing is the trap. An
+          agent is only as good as the context it works in — and context is a team
+          asset, not a personal one.
+        </p>
+        <p>
+          So the work I find interesting isn't prompting. It's engineering the
+          environment agents operate in: encoding the team's architecture patterns
+          so they're applied consistently, wiring guardrails so autonomy is safe,
+          and measuring what helps so the practice improves like any other system.
+        </p>
+      </div>
+    </section>
+
+    <section id="built" class="section">
+      <h2>What I've built</h2>
+      <div class="section-body prose">
+        <h3>A skills platform</h3>
+        <p>
+          At Rebtel I founded and maintain an internal skills platform for Claude
+          Code: thirty-plus versioned, reviewed skills that encode how our backend
+          is actually built — the architectural patterns, the error-handling
+          conventions, the testing strategy, the delivery pipeline. An agent picking
+          up a task loads the same knowledge a senior teammate would explain at the
+          whiteboard. Skills are treated like code: proposed, reviewed, evaluated
+          against real tasks before they ship, and corrected when the codebase
+          moves on.
+        </p>
+        <h3>Workflow, end to end</h3>
+        <p>
+          On top of the patterns sit workflow skills that walk an agent through our
+          software lifecycle — from feature planning and ticket writing (tickets
+          are authored to be AI-ready) through implementation, self-review, and an
+          opened pull request. Deterministic steps are scaffolded with commands and
+          advisory git hooks, so the repeatable parts stay repeatable and human
+          judgment is spent where it matters: review.
+        </p>
+        <h3>Telemetry and sandboxing</h3>
+        <p>
+          Two things made the practice trustworthy. Usage telemetry — OpenTelemetry
+          from the tooling into our dashboards — shows which skills get used and
+          where agents struggle, so improvement is driven by data rather than
+          anecdotes. And a strict OS-level sandbox standard for agent sessions means
+          autonomy doesn't require faith: the blast radius is bounded by
+          construction.
+        </p>
+      </div>
+    </section>
+
+    <section id="beliefs" class="section">
+      <h2>What I believe</h2>
+      <div class="section-body prose">
+        <ul>
+          <li><strong>Encode, don't repeat.</strong> Anything you'd explain twice to a new teammate belongs in a skill the agent loads every time.</li>
+          <li><strong>Agents amplify your engineering culture</strong> — including the bad parts. Codified conventions and clean seams pay off double.</li>
+          <li><strong>Review is the human's job.</strong> The goal is not unattended code; it's a higher-leverage engineer who owns judgment, direction and the merge button.</li>
+          <li><strong>Measure it.</strong> If you can't see usage and outcomes, you have a vibe, not a practice.</li>
+          <li><strong>Treat prompts and skills as artifacts.</strong> Versioned, reviewed, evaluated — the same discipline as production code.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="next" class="section">
+      <h2>Working on</h2>
+      <div class="section-body prose">
+        <p>
+          Multi-agent orchestration for large migrations, evaluation harnesses for
+          skills, and the question I keep coming back to: what does a software team
+          look like when the bottleneck is review and intent, not typing? Happy to
+          compare notes — <a href="#" class="email-link">email me</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="links" aria-label="Contact">
+      <a href="index.html">← Home</a>
+      <a href="https://www.linkedin.com/in/corentin-sueur">LinkedIn</a>
+      <a href="https://github.com/Corentin-Sueur">GitHub</a>
+      <a href="#" class="email-link">Email</a>
+      <a href="cv.html" class="cv-link">View CV →</a>
+    </nav>
+    <p class="colophon">Stockholm · <span id="year"></span></p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'site-mode';
+    var buttons = document.querySelectorAll('.mode-picker button');
+    function set(m) {
+      root.setAttribute('data-mode', m);
+      try { localStorage.setItem(KEY, m); } catch (e) {}
+      buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    set(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
+
+    var u = ['corentin', 'sueur'].join('.');
+    var d = ['outlook', 'com'].join('.');
+    document.querySelectorAll('.email-link').forEach(function (a) {
+      if (a.textContent === 'Email') { a.textContent = 'Email'; }
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        location.href = 'mailto:' + u + '@' + d;
+      });
+    });
+
+    var y = document.getElementById('year');
+    if (y) { y.textContent = new Date().getFullYear(); }
+  })();
+</script>
+</body>
+</html>
