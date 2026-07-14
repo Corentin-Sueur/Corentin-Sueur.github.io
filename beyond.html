@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Corentin Sueur — Software Engineer in Stockholm</title>
-<meta name="description" content="Backend engineer in Stockholm — .NET, federated GraphQL, Kubernetes, and AI-assisted engineering.">
+<title>Off hours — Corentin Sueur</title>
+<meta name="description" content="Rowing, winters on ice and snow, and slow travel — the hours between commits.">
 <style>
 /* Personal site — Archipelago tokens, nautical-chart editorial layout.
    Modes: default follows prefers-color-scheme; [data-mode] (set by the Light/Dark
@@ -286,14 +286,13 @@ footer {
 </style>
 </head>
 <body>
-<!-- Site content — assembled into output/site/index.html (full doc) and
-     output/site-preview.html (artifact fragment) by build.sh -->
+<!-- Off hours page — assembled into output/site/beyond.html by build.sh -->
 <div class="wrap">
   <header class="top">
-    <span class="wordmark">Corentin Sueur</span>
+    <a class="wordmark" href="index.html">Corentin Sueur</a>
     <nav class="top-nav" aria-label="Pages">
       <a href="ai.html">AI practice</a>
-      <a href="beyond.html">Off hours</a>
+      <a href="beyond.html" aria-current="page">Off hours</a>
     </nav>
     <div class="mode-picker" role="group" aria-label="Color mode">
       <button type="button" data-m="light">Light</button>
@@ -302,183 +301,112 @@ footer {
   </header>
 
   <main>
-    <section class="hero">
-      <canvas id="chart" aria-hidden="true"></canvas>
-      <p class="eyebrow">59.33° N, 18.07° E — Stockholm · Software Engineer</p>
-      <h1>I build the backend systems that move calls, messages and&nbsp;money.</h1>
+    <section class="page-hero">
+      <p class="eyebrow">Off hours — logbook</p>
+      <h1>The hours between commits.</h1>
       <p class="thesis">
-        Backend engineer at Rebtel — .NET, federated GraphQL and Kubernetes —
-        and lately, rethinking how engineering teams work with AI.
+        Mostly outside, mostly on water in one of its states — liquid in summer,
+        frozen in winter — and sometimes far from Stockholm altogether.
       </p>
-      <p class="now">
-        <strong>Now</strong> · building a financial ledger platform · driving AI-assisted
-        engineering · learning Swedish
-      </p>
-      <nav class="links" aria-label="Contact">
-        <a href="https://www.linkedin.com/in/corentin-sueur">LinkedIn</a>
-        <a href="https://github.com/Corentin-Sueur">GitHub</a>
-        <a href="#" class="email-link">Email</a>
-        <a href="cv.html" class="cv-link">View CV →</a>
-        <a href="cv-corentin-sueur.pdf" download>CV PDF ↓</a>
-      </nav>
     </section>
 
-    <section id="about" class="section">
-      <h2>About</h2>
+    <section id="water" class="section">
+      <h2>On the water</h2>
       <div class="section-body">
-        <p>
-          I'm a backend engineer with five years in .NET, based in Stockholm since 2024.
-          At Rebtel I work on the platform behind international calling, mobile top-ups
-          and money transfer — a system serving millions of users, running as a
-          fleet of microservices on Kubernetes. I like owning things end
-          to end: design, code, pipelines, deployment, and the on-call phone. And I care
-          about how teams build — lately, that means defining how AI fits into the
-          everyday engineering workflow.
+        <p class="section-intro">
+          I row competitively, and from 2024 to 2026 I served on the board of
+          Akademiska Roddföreningen — responsible for the club's boats and
+          equipment, and stepping in as interim coach for the competitive team.
+          A rowing club is a hundred small jobs nobody sees: varnish days,
+          rigging repairs, a Swedish flag hung over the boat-bay doors for
+          midsummer. That's the part I loved.
         </p>
-      </div>
-    </section>
-
-    <section id="highlights" class="section">
-      <h2>Selected work</h2>
-      <div class="section-body">
-        <article class="story">
-          <p class="story-meta">2024 — ongoing · payments</p>
-          <h3>A new financial core</h3>
-          <p>
-            When Rebtel needed to replace its legacy accounting system, I designed and
-            built the successor: a double-entry ledger service that now handles every
-            charge, reservation, refund and VAT calculation on the platform. Then came
-            the harder part — migrating a decade of accounting behaviour onto it,
-            service by service, without breaking the money.
-          </p>
-        </article>
-
-        <article class="story">
-          <p class="story-meta">2026 — ongoing · developer experience</p>
-          <h3>Making AI a team practice</h3>
-          <p>
-            I founded and drive the cross-team AI engineering initiative at Rebtel. The
-            centrepiece is a skills platform for Claude Code — thirty-plus skills that
-            encode our architecture patterns and development workflows, with telemetry
-            to see what actually helps. The goal isn't autocomplete: it's making
-            agent-driven development shared, reviewable and consistent, from ticket
-            intake to opened pull request.
-          </p>
-        </article>
-
-        <article class="story">
-          <p class="story-meta">2025 — 2026 · platform architecture</p>
-          <h3>GraphQL at platform scale</h3>
-          <p>
-            Rebtel's client APIs run on federated GraphQL — a HotChocolate Fusion
-            gateway composing domain subgraphs. I drove key parts of that architecture:
-            the implementation-first type system, real-time subscriptions over Redis,
-            and the cross-service rewrite that standardized how the platform's services
-            expose their schemas.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <section id="experience" class="section">
-      <h2>Experience</h2>
-      <div class="section-body">
-        <div class="timeline">
-          <div class="row">
-            <span class="years">2024 —</span>
-            <span class="what"><strong>Rebtel</strong>, Stockholm — Software Engineer. Telecom &amp; payments platform: .NET, GraphQL, gRPC, Kubernetes.</span>
-          </div>
-          <div class="row">
-            <span class="years">2022 – 2024</span>
-            <span class="what"><strong>Thales</strong>, Lyon — Software Engineer (.NET). Compliance-driven software for medical diagnostics equipment.</span>
-          </div>
-          <div class="row">
-            <span class="years">2022</span>
-            <span class="what"><strong>Polytech Grenoble</strong> — engineering degree (diplôme d'ingénieur), Computer Science.</span>
-          </div>
-          <div class="row">
-            <span class="years">2020 – 2021</span>
-            <span class="what"><strong>Linköping University</strong> — Erasmus exchange. The semester that started the Sweden story.</span>
-          </div>
+        <div class="gallery">
+          <figure>
+            <img src="assets/rowing.jpg" alt="A quad scull seen from above, oars fanned out over dark water" loading="lazy">
+            <figcaption>The quad from the bridge — race day</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/boathouse-dusk.jpg" alt="A white boathouse at dusk with a large Swedish flag over the doors and people on the balcony" loading="lazy">
+            <figcaption>Midsummer at the boathouse</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/boat-work.jpg" alt="Club members restoring a wooden rowing boat outdoors, lifebuoys hung on an oar signpost" loading="lazy">
+            <figcaption>Varnish day — club boats are everyone's boats</figcaption>
+          </figure>
         </div>
       </div>
     </section>
 
-    <section id="toolbox" class="section">
-      <h2>Toolbox</h2>
+    <section id="ice" class="section">
+      <h2>On the ice</h2>
       <div class="section-body">
-        <div class="chips">
-          <span class="chip">C#</span>
-          <span class="chip">.NET 10</span>
-          <span class="chip">GraphQL · HotChocolate Fusion</span>
-          <span class="chip">gRPC</span>
-          <span class="chip">SQL Server</span>
-          <span class="chip">Redis</span>
-          <span class="chip">RabbitMQ</span>
-          <span class="chip">Kubernetes / AKS</span>
-          <span class="chip">Helm · Argo CD</span>
-          <span class="chip">GitHub Actions</span>
-          <span class="chip">.NET Aspire</span>
-          <span class="chip">Claude Code</span>
+        <p class="section-intro">
+          Swedish winters converted me: long-distance skating when the natural ice
+          carries, cross-country touring when the snow is right, alpine when it
+          isn't. The season the water freezes is the season I look forward to most.
+        </p>
+        <div class="gallery">
+          <figure>
+            <img src="assets/ski-tour.jpg" alt="A ski tourer crouched over a backpack in a vast snowy fjäll plain, skis planted upright" loading="lazy">
+            <figcaption>Repacking on the fjäll — somewhere above the treeline</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/winter.jpg" alt="An alpine skier in orange pants setting off under a blue sky" loading="lazy">
+            <figcaption>Alpine day, blue sky for once</figcaption>
+          </figure>
         </div>
       </div>
     </section>
 
-    <section id="beyond" class="section">
-      <h2>Beyond work</h2>
+    <section id="elsewhere" class="section">
+      <h2>Elsewhere</h2>
       <div class="section-body">
-        <div class="beyond-grid">
-          <article>
-            <div class="photo-slot filled">
-              <img src="assets/rowing.jpg" alt="A quad scull seen from above, oars fanned out over dark water" loading="lazy">
-            </div>
-            <h3>On the water</h3>
-            <p>
-              I row competitively, and from 2024 to 2026 I served on the board of
-              Akademiska Roddföreningen in Stockholm — responsible for the club's boats
-              and equipment, and stepping in as interim coach for the competitive team.
-              Rowing at six in the morning teaches you things standups can't.
-            </p>
-          </article>
-
-          <article>
-            <div class="photo-slot filled">
-              <img src="assets/winter.jpg" alt="An alpine skier in orange pants setting off under a blue sky" loading="lazy">
-            </div>
-            <h3>On the ice</h3>
-            <p>
-              Swedish winters converted me: long-distance skating on natural ice,
-              cross-country skiing when the snow is right, alpine when it isn't.
-              The season the water freezes is the season I look forward to most.
-            </p>
-          </article>
-
-          <article>
-            <div class="photo-slot filled">
-              <img src="assets/travel.jpg" alt="Sunset over a rocky heather-covered coastal plateau, an archipelago fjord below" loading="lazy">
-            </div>
-            <h3>Elsewhere</h3>
-            <p>
-              I travel slow when I can — long trips with a backpack rather than a
-              checklist. It started with an Erasmus winter in Linköping that eventually
-              turned into a life in Sweden.
-            </p>
-          </article>
+        <p class="section-intro">
+          I travel slow when I can — a loaded bike through rural Sweden, a backpack
+          further afield. It started with an Erasmus winter in Linköping that
+          eventually turned into a life here.
+        </p>
+        <div class="gallery">
+          <figure>
+            <img src="assets/travel.jpg" alt="Sunset over a rocky heather-covered coastal plateau, an archipelago fjord below" loading="lazy">
+            <figcaption>Bohuslän granite at sunset</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/bikepacking.jpg" alt="A loaded bikepacking bike leaning against a mossy stone wall among birches" loading="lazy">
+            <figcaption>Stone walls and birches — touring Sweden by bike</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/autumn-lake.jpg" alt="A still lake mirroring autumn-gold birches and a dramatic cloud bank" loading="lazy">
+            <figcaption>October, a lake holding its breath</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/golden-gate.jpg" alt="The Golden Gate Bridge with fog rolling over the far tower" loading="lazy">
+            <figcaption>Fog beating the Golden Gate, as usual</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/sf-fog.jpg" alt="The Transamerica Pyramid disappearing into fog behind a California flag" loading="lazy">
+            <figcaption>San Francisco, dressed for the weather</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/venice-cottage.jpg" alt="A pink cottage with a flower wall and a vintage yellow pickup truck" loading="lazy">
+            <figcaption>Venice side streets</figcaption>
+          </figure>
         </div>
-        <p class="more-link"><a href="beyond.html">More from off hours →</a></p>
       </div>
     </section>
   </main>
 
   <footer>
     <nav class="links" aria-label="Contact">
+      <a href="index.html">← Home</a>
       <a href="https://www.linkedin.com/in/corentin-sueur">LinkedIn</a>
       <a href="https://github.com/Corentin-Sueur">GitHub</a>
       <a href="#" class="email-link">Email</a>
       <a href="cv.html" class="cv-link">View CV →</a>
         <a href="cv-corentin-sueur.pdf" download>CV PDF ↓</a>
     </nav>
-    <p class="colophon">Stockholm · built from the same data as my CV · <span id="year"></span></p>
+    <p class="colophon">Stockholm · <span id="year"></span></p>
   </footer>
 </div>
 
@@ -487,75 +415,19 @@ footer {
     var root = document.documentElement;
     var KEY = 'site-mode';
     var buttons = document.querySelectorAll('.mode-picker button');
-
-    function drawChart() {
-      var canvas = document.getElementById('chart');
-      if (!canvas || !canvas.getContext) return;
-      var dpr = window.devicePixelRatio || 1;
-      var w = canvas.clientWidth, h = canvas.clientHeight;
-      if (!w || !h) return;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      var ctx = canvas.getContext('2d');
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, w, h);
-      var styles = getComputedStyle(root);
-      ctx.strokeStyle = styles.getPropertyValue('--chart-line').trim();
-      ctx.lineWidth = 1;
-      var islands = [
-        { x: 0.86, y: 0.18, r: 34, n: 5 },
-        { x: 1.04, y: 0.72, r: 46, n: 6 },
-        { x: 0.62, y: 1.06, r: 40, n: 5 },
-        { x: 0.10, y: 1.10, r: 44, n: 4 },
-        { x: 0.38, y: -0.12, r: 30, n: 4 }
-      ];
-      islands.forEach(function (isl, k) {
-        for (var i = 1; i <= isl.n; i++) {
-          var base = isl.r * i * 0.85;
-          ctx.beginPath();
-          for (var a = 0; a <= Math.PI * 2 + 0.09; a += 0.08) {
-            var wob = Math.sin(a * 3 + k * 2.1) * 6 +
-                      Math.sin(a * 5 + k) * 4 +
-                      Math.sin(a * 2 - k * 1.3) * 5;
-            var r = base + wob * (1 + i * 0.22);
-            var px = isl.x * w + Math.cos(a) * r;
-            var py = isl.y * h + Math.sin(a) * r * 0.8;
-            if (a === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
-          }
-          ctx.stroke();
-        }
-      });
-      ctx.fillStyle = styles.getPropertyValue('--chart-text').trim();
-      ctx.font = '11px "SF Mono", Menlo, monospace';
-      [[0.52, 0.24, '23'], [0.70, 0.52, '17'], [0.44, 0.66, '31'],
-       [0.80, 0.90, '9'], [0.92, 0.44, '12'], [0.26, 0.30, '27'],
-       [0.14, 0.62, '14'], [0.60, 0.86, '19']].forEach(function (d) {
-        ctx.fillText(d[2], d[0] * w, d[1] * h);
-      });
-    }
-
     function set(m) {
       root.setAttribute('data-mode', m);
       try { localStorage.setItem(KEY, m); } catch (e) {}
       buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
-      drawChart();
     }
-
     var saved = null;
     try { saved = localStorage.getItem(KEY); } catch (e) {}
     set(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
     buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
 
-    var resizeTimer;
-    window.addEventListener('resize', function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(drawChart, 150);
-    });
-
     var u = ['corentin', 'sueur'].join('.');
     var d = ['outlook', 'com'].join('.');
     document.querySelectorAll('.email-link').forEach(function (a) {
-      a.textContent = 'Email';
       a.addEventListener('click', function (ev) {
         ev.preventDefault();
         location.href = 'mailto:' + u + '@' + d;
