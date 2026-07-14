@@ -1,0 +1,346 @@
+<title>Corentin Sueur — CV</title>
+<style>
+/* Shared layout — theme-agnostic. Colors/type come from styles/themes/*.css via tokens:
+   --paper --ink --muted --accent --hairline --tag-bg --ph-bg
+   --heading --rule --tick --ph-border --display --body --mono */
+html { background: var(--paper); }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+  font-size: 15px;
+}
+.page { max-width: 880px; margin: 0 auto; padding: 56px 40px 72px; }
+
+header.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  border-bottom: 2px solid var(--rule);
+  padding-bottom: 20px;
+}
+h1 { font-family: var(--display); font-weight: 600; font-size: 34px; letter-spacing: -0.01em; text-wrap: balance; }
+.role-line { font-family: var(--display); font-size: 15px; color: var(--heading); letter-spacing: 0.02em; }
+.contact-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.contact-row a { color: var(--muted); text-decoration: none; }
+.contact-row a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.summary { margin: 26px 0 36px; font-size: 16px; }
+
+.columns { display: grid; grid-template-columns: 1fr 250px; gap: 48px; }
+@media (max-width: 720px) {
+  .columns { grid-template-columns: 1fr; gap: 32px; }
+  .page { padding: 36px 20px 56px; }
+}
+
+h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--heading);
+  margin-bottom: 14px;
+}
+section + section { margin-top: 34px; }
+
+.job-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+h3 { font-family: var(--display); font-weight: 600; font-size: 17px; }
+.job-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.job-context { color: var(--muted); font-size: 14px; margin: 6px 0 12px; max-width: 62ch; }
+
+ul.achievements { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+ul.achievements li { padding-left: 18px; position: relative; max-width: 66ch; }
+ul.achievements li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 2px;
+  background: var(--tick);
+}
+ul.achievements strong { font-family: var(--display); font-weight: 600; font-size: 13.5px; }
+
+.job + .job { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--hairline); }
+
+aside .block + .block { margin-top: 30px; }
+.tag-group { margin-bottom: 14px; }
+.tag-group-label {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--tag-bg);
+  color: var(--ink);
+  padding: 3px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+aside p, aside li { font-size: 13.5px; }
+aside ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+.ph {
+  background: var(--ph-bg);
+  border: 1px dashed var(--ph-border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.94em;
+}
+.ph-note {
+  margin-top: 44px;
+  padding: 12px 16px;
+  border: 1px dashed var(--hairline);
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-family: var(--display);
+}
+
+@media print {
+  body { font-size: 11.5px; line-height: 1.45; }
+  .page { max-width: none; padding: 0; }
+  .ph-note { display: none; }
+  h1 { font-size: 26px; }
+  header.masthead { padding-bottom: 12px; }
+  .summary { margin: 16px 0 22px; font-size: 12.5px; }
+  .columns { gap: 32px; }
+  section + section { margin-top: 20px; }
+  .job + .job { margin-top: 14px; padding-top: 12px; }
+  ul.achievements { gap: 6px; }
+  aside .block + .block { margin-top: 18px; }
+  .job-head, ul.achievements li, .job-context, aside .block { break-inside: avoid; }
+  @page { size: A4; margin: 13mm 15mm; }
+}
+/* Archipelago — locked LIGHT build. Full token set; wins over any viewer theme toggle. */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8; --ph-bg: rgba(37, 99, 235, 0.05);
+  --heading: var(--accent); --rule: var(--accent); --tick: var(--accent); --ph-border: var(--accent);
+  --display: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --paper: #FFFFFF; --tag-bg: #EDF2FA; --ph-bg: #F2F6FD;
+  }
+}
+</style>
+<!-- GENERATED body fragment from data/cv.yaml — assembled into the final pages by build.sh -->
+<div class="page">
+  <header class="masthead">
+    <h1>Corentin Sueur</h1>
+    <div class="role-line">Software Engineer · Backend .NET</div>
+    <div class="contact-row">
+      <a href="mailto:corentin.sueur@outlook.com">corentin.sueur@outlook.com</a>
+      <span>Stockholm, Sweden</span>
+      <a href="https://www.linkedin.com/in/corentin-sueur">linkedin.com/in/corentin-sueur</a>
+      <a href="https://github.com/Corentin-Sueur">github.com/Corentin-Sueur</a>
+      <span>French citizen (EU)</span>
+    </div>
+  </header>
+
+  <p class="summary">
+    Backend engineer with five years of .NET experience, the last two and a
+    half at Rebtel in Stockholm building distributed telecom and payment systems —
+    federated GraphQL, gRPC microservices, event-driven flows, and the CI/CD and test
+    infrastructure that keeps them shippable. Comfortable owning a change end to end
+    across a legacy monolith and a modern microservice estate, and driving the cross-team
+    initiative to define AI-assisted development workflows.
+  </p>
+
+  <div class="columns">
+    <main>
+      <section>
+        <h2>Experience</h2>
+
+        <div class="job">
+          <div class="job-head">
+            <h3>Rebtel — Software Engineer</h3>
+            <span class="job-meta">2024 – present · Stockholm (SE)</span>
+          </div>
+          <p class="job-context">
+            Telecommunications platform for international calling, mobile top-ups, money
+            transfer and eSIM, serving millions of users. Backend estate of ~19
+            repositories: a .NET Framework monolith plus .NET 10 microservices behind a
+            federated GraphQL gateway, on Kubernetes (AKS).
+          </p>
+          <ul class="achievements">
+            <li>
+              <strong>New financial core.</strong> Primary author of the company's new
+              double-entry Ledger service — charges, reservations, refunds, VAT and
+              multi-currency — and led the multi-year migration of the legacy accounting
+              subsystem onto it across the monolith and every consuming service,
+              including the refund-architecture ADR.
+            </li>
+            <li>
+              <strong>AI-assisted engineering.</strong> Founded and drive the cross-team
+              AI initiative: a Claude Code skills platform — 30+ skills encoding the
+              platform's architecture patterns and SDLC workflows, with usage telemetry —
+              plus agent-ready ticket-to-PR workflows and a QA traffic-interception tool,
+              making agent-driven development a shared, reviewable practice.
+            </li>
+            <li>
+              <strong>GraphQL architecture.</strong> Drove the platform's federated
+              GraphQL design — a HotChocolate Fusion gateway over domain subgraphs,
+              implementation-first type system, DataLoader batching, real-time
+              subscriptions over Redis — and the cross-service rewrite that
+              standardized it.
+            </li>
+            <li>
+              <strong>Product delivery across domains.</strong> Shipped customer-facing
+              features end to end: OTP and email-verification flows, order lifecycles
+              for top-ups and eSIM (GraphQL mutations, state machines), fraud-signal
+              integrations (Seon, IPQS), a new WhatsApp notification and top-up channel,
+              and a new delivery provider onboarded end to end.
+            </li>
+            <li>
+              <strong>Platform &amp; infrastructure.</strong> Estate-wide .NET 10
+              upgrades and new microservices stood up from scratch; delivery on
+              Kubernetes (AKS) through GitOps — Helm charts, Argo CD, reusable GitHub
+              Actions pipelines with .NET Aspire integration-test gates and automated
+              production releases. Part of the production on-call rotation.
+            </li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <h3>Thales — Software Engineer (.NET)</h3>
+            <span class="job-meta">2022 – 2024 · Lyon (FR)</span>
+          </div>
+          <p class="job-context">Software for medical diagnostics equipment.</p>
+          <ul class="achievements">
+            <li>
+              <strong>Medical-device application.</strong> Developed a C#/.NET WPF
+              application for an immunological analysis machine in an agile Scrum team —
+              a compliance-driven medical-device context with a demanding upfront design
+              phase, followed by implementation and unit testing.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Community &amp; leadership</h2>
+
+        <div class="job">
+          <div class="job-head">
+            <h3>Board member &amp; interim coach — Akademiska Roddföreningen</h3>
+            <span class="job-meta">2024 – 2026 · Stockholm</span>
+          </div>
+          <p class="job-context">
+            Responsible for the rowing club's equipment and material, coordinating with
+            the head coach, the board and the club direction; stepped in as interim coach
+            of the competitive team.
+          </p>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <h3>Founder — Junior-Entreprise, Polytech Grenoble</h3>
+            <span class="job-meta">2020 – 2021</span>
+          </div>
+          <p class="job-context">
+            Founded a student consulting association run like a company — employing
+            students and delivering paid services to private and public clients;
+            leadership, finance and operations experience.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <div class="block">
+        <h2>Stack</h2>
+        <div class="tag-group">
+          <div class="tag-group-label">Core</div>
+          <div class="tags">
+            <span class="tag">C#</span><span class="tag">.NET 10</span>
+            <span class="tag">ASP.NET Core</span><span class="tag">EF Core</span>
+          </div>
+        </div>
+        <div class="tag-group">
+          <div class="tag-group-label">APIs</div>
+          <div class="tags">
+            <span class="tag">GraphQL</span><span class="tag">HotChocolate Fusion</span>
+            <span class="tag">gRPC</span><span class="tag">REST</span>
+          </div>
+        </div>
+        <div class="tag-group">
+          <div class="tag-group-label">Data &amp; messaging</div>
+          <div class="tags">
+            <span class="tag">SQL Server</span><span class="tag">MongoDB</span>
+            <span class="tag">Redis</span><span class="tag">RabbitMQ</span>
+          </div>
+        </div>
+        <div class="tag-group">
+          <div class="tag-group-label">Infra &amp; delivery</div>
+          <div class="tags">
+            <span class="tag">Kubernetes / AKS</span><span class="tag">Helm</span>
+            <span class="tag">Argo CD</span><span class="tag">GitHub Actions</span>
+            <span class="tag">.NET Aspire</span><span class="tag">Docker</span>
+          </div>
+        </div>
+        <div class="tag-group">
+          <div class="tag-group-label">Practices</div>
+          <div class="tags">
+            <span class="tag">AI-assisted dev</span><span class="tag">Claude Code</span>
+            <span class="tag">xUnit / NUnit</span>
+            <span class="tag">Event-driven design</span><span class="tag">ADRs</span>
+            <span class="tag">Agile / Scrum</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>Education</h2>
+        <ul>
+          <li>Engineering degree (diplôme d'ingénieur), Computer Science<br>Polytech Grenoble, France · 2022</li>
+          <li>Erasmus exchange semester<br>Linköping University, Sweden · 2020–2021</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2>Languages</h2>
+        <ul>
+          <li>French — Native</li>
+          <li>English — Fluent (Linguaskill C1+)</li>
+          <li>Swedish — Beginner (A1–A2), actively learning</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2>Interests</h2>
+        <p>Competitive rowing and cycling; travel; beekeeping; cooking.</p>
+      </div>
+    </aside>
+  </div>
+</div>

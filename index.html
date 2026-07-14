@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corentin Sueur — Software Engineer in Stockholm</title>
+<meta name="description" content="Backend engineer in Stockholm — .NET, federated GraphQL, Kubernetes, and AI-assisted engineering.">
+<style>
+/* Personal site — Archipelago tokens, nautical-chart editorial layout.
+   Modes: default follows prefers-color-scheme; [data-mode] (set by the Light/Dark
+   buttons) overrides in both directions. Signature: the depth-contour hero chart. */
+:root {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+  --display: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+    --hairline: #24344E; --tag-bg: #16233A;
+    --chart-line: rgba(125, 167, 242, 0.20);
+    --chart-text: rgba(143, 160, 188, 0.60);
+  }
+}
+:root[data-mode="dark"] {
+  --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+  --hairline: #24344E; --tag-bg: #16233A;
+  --chart-line: rgba(125, 167, 242, 0.20);
+  --chart-text: rgba(143, 160, 188, 0.60);
+}
+:root[data-mode="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+}
+
+html { background: var(--paper); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 32px 72px; }
+@media (max-width: 640px) { .wrap { padding: 20px 20px 56px; } }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+.mode-picker {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--tag-bg);
+}
+.mode-picker button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mode-picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mode-picker button.active { background: var(--accent); color: var(--paper); }
+
+/* Hero with the chart behind it */
+.hero {
+  position: relative;
+  padding: 72px 0 96px;
+  margin-bottom: 64px;
+}
+#chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero > :not(#chart) { position: relative; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(34px, 6.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.thesis { font-size: 19px; color: var(--muted); max-width: 52ch; margin-bottom: 30px; }
+.now {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+.now strong { color: var(--accent); font-weight: 600; }
+
+.links { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.links a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.links a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.links a.cv-link { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.links a.cv-link:hover { opacity: 0.9; }
+
+/* Label-rail sections */
+.section {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 24px 56px;
+  padding: 56px 0;
+  border-top: 1px solid var(--hairline);
+}
+@media (max-width: 760px) { .section { grid-template-columns: 1fr; padding: 40px 0; } }
+h2 {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+h2::before { content: "— "; }
+.section-body { min-width: 0; }
+
+#about p { font-size: 18px; max-width: 60ch; }
+
+.story + .story { margin-top: 44px; }
+.story-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.01em; margin-bottom: 10px; }
+.story p { max-width: 62ch; }
+
+.timeline { display: flex; flex-direction: column; gap: 18px; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: baseline;
+}
+.timeline .years {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.timeline .what { max-width: 64ch; }
+.timeline strong { font-family: var(--display); font-weight: 600; }
+@media (max-width: 520px) {
+  .timeline .row { grid-template-columns: 1fr; gap: 2px; }
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--tag-bg);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.beyond-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px;
+}
+@media (max-width: 700px) { .beyond-grid { grid-template-columns: 1fr; } }
+.photo-slot {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(circle at 28% 72%, transparent 0 22px, var(--chart-line) 22px 23px),
+    repeating-radial-gradient(circle at 78% 20%, transparent 0 30px, var(--chart-line) 30px 31px),
+    var(--tag-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+.photo-slot span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+#beyond h3 { font-size: 20px; }
+#beyond p { max-width: 48ch; }
+
+footer {
+  border-top: 2px solid var(--accent);
+  padding-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.colophon { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<!-- Site content — assembled into output/site/index.html (full doc) and
+     output/site-preview.html (artifact fragment) by build.sh -->
+<div class="wrap">
+  <header class="top">
+    <span class="wordmark">Corentin Sueur</span>
+    <div class="mode-picker" role="group" aria-label="Color mode">
+      <button type="button" data-m="light">Light</button>
+      <button type="button" data-m="dark">Dark</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <canvas id="chart" aria-hidden="true"></canvas>
+      <p class="eyebrow">59.33° N, 18.07° E — Stockholm · Software Engineer</p>
+      <h1>I build the backend systems that move calls, messages and&nbsp;money.</h1>
+      <p class="thesis">
+        Backend engineer at Rebtel — .NET, federated GraphQL and Kubernetes —
+        and lately, rethinking how engineering teams work with AI.
+      </p>
+      <p class="now">
+        <strong>Now</strong> · building a financial ledger platform · driving AI-assisted
+        engineering · learning Swedish
+      </p>
+      <nav class="links" aria-label="Contact">
+        <a href="https://www.linkedin.com/in/corentin-sueur">LinkedIn</a>
+        <a href="https://github.com/Corentin-Sueur">GitHub</a>
+        <a href="#" class="email-link">Email</a>
+        <a href="cv.html" class="cv-link">View CV →</a>
+      </nav>
+    </section>
+
+    <section id="about" class="section">
+      <h2>About</h2>
+      <div class="section-body">
+        <p>
+          I'm a backend engineer with five years in .NET, based in Stockholm since 2024.
+          At Rebtel I work on the platform behind international calling, mobile top-ups
+          and money transfer — a system serving millions of users, spanning a legacy
+          monolith and a fleet of microservices on Kubernetes. I like owning things end
+          to end: design, code, pipelines, deployment, and the on-call phone. And I care
+          about how teams build — lately, that means defining how AI fits into the
+          everyday engineering workflow.
+        </p>
+      </div>
+    </section>
+
+    <section id="highlights" class="section">
+      <h2>Selected work</h2>
+      <div class="section-body">
+        <article class="story">
+          <p class="story-meta">2024 — ongoing · payments</p>
+          <h3>A new financial core</h3>
+          <p>
+            When Rebtel needed to replace its legacy accounting system, I designed and
+            built the successor: a double-entry ledger service that now handles every
+            charge, reservation, refund and VAT calculation on the platform. Then came
+            the harder part — migrating a decade of accounting behaviour from a .NET
+            Framework monolith and every consuming service onto it, without breaking
+            the money.
+          </p>
+        </article>
+
+        <article class="story">
+          <p class="story-meta">2026 — ongoing · developer experience</p>
+          <h3>Making AI a team practice</h3>
+          <p>
+            I founded and drive the cross-team AI engineering initiative at Rebtel. The
+            centrepiece is a skills platform for Claude Code — thirty-plus skills that
+            encode our architecture patterns and development workflows, with telemetry
+            to see what actually helps. The goal isn't autocomplete: it's making
+            agent-driven development shared, reviewable and consistent, from ticket
+            intake to opened pull request.
+          </p>
+        </article>
+
+        <article class="story">
+          <p class="story-meta">2025 — 2026 · platform architecture</p>
+          <h3>GraphQL at platform scale</h3>
+          <p>
+            Rebtel's client APIs run on federated GraphQL — a HotChocolate Fusion
+            gateway composing domain subgraphs. I drove key parts of that architecture:
+            the implementation-first type system, real-time subscriptions over Redis,
+            and the cross-service rewrite that standardized how the platform's services
+            expose their schemas.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="experience" class="section">
+      <h2>Experience</h2>
+      <div class="section-body">
+        <div class="timeline">
+          <div class="row">
+            <span class="years">2024 —</span>
+            <span class="what"><strong>Rebtel</strong>, Stockholm — Software Engineer. Telecom &amp; payments platform: .NET, GraphQL, gRPC, Kubernetes.</span>
+          </div>
+          <div class="row">
+            <span class="years">2022 – 2024</span>
+            <span class="what"><strong>Thales</strong>, Lyon — Software Engineer (.NET). Compliance-driven software for medical diagnostics equipment.</span>
+          </div>
+          <div class="row">
+            <span class="years">2022</span>
+            <span class="what"><strong>Polytech Grenoble</strong> — engineering degree (diplôme d'ingénieur), Computer Science.</span>
+          </div>
+          <div class="row">
+            <span class="years">2020 – 2021</span>
+            <span class="what"><strong>Linköping University</strong> — Erasmus exchange. The semester that started the Sweden story.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="toolbox" class="section">
+      <h2>Toolbox</h2>
+      <div class="section-body">
+        <div class="chips">
+          <span class="chip">C#</span>
+          <span class="chip">.NET 10</span>
+          <span class="chip">GraphQL · HotChocolate Fusion</span>
+          <span class="chip">gRPC</span>
+          <span class="chip">SQL Server</span>
+          <span class="chip">Redis</span>
+          <span class="chip">RabbitMQ</span>
+          <span class="chip">Kubernetes / AKS</span>
+          <span class="chip">Helm · Argo CD</span>
+          <span class="chip">GitHub Actions</span>
+          <span class="chip">.NET Aspire</span>
+          <span class="chip">Claude Code</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="beyond" class="section">
+      <h2>Beyond work</h2>
+      <div class="section-body">
+        <div class="beyond-grid">
+          <article>
+            <div class="photo-slot" role="img" aria-label="Photo coming soon: rowing">
+              <span>rowing · photo soon</span>
+            </div>
+            <h3>On the water</h3>
+            <p>
+              I row competitively, and from 2024 to 2026 I served on the board of
+              Akademiska Roddföreningen in Stockholm — responsible for the club's boats
+              and equipment, and stepping in as interim coach for the competitive team.
+              Rowing at six in the morning teaches you things standups can't.
+            </p>
+          </article>
+
+          <article>
+            <div class="photo-slot" role="img" aria-label="Photo coming soon: travel">
+              <span>travel · photo soon</span>
+            </div>
+            <h3>Elsewhere</h3>
+            <p>
+              I travel slow when I can — long trips with a backpack rather than a
+              checklist. It started with an Erasmus winter in Linköping that eventually
+              turned into a life in Sweden.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="links" aria-label="Contact">
+      <a href="https://www.linkedin.com/in/corentin-sueur">LinkedIn</a>
+      <a href="https://github.com/Corentin-Sueur">GitHub</a>
+      <a href="#" class="email-link">Email</a>
+      <a href="cv.html" class="cv-link">View CV →</a>
+    </nav>
+    <p class="colophon">Stockholm · built from the same data as my CV · <span id="year"></span></p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'site-mode';
+    var buttons = document.querySelectorAll('.mode-picker button');
+
+    function drawChart() {
+      var canvas = document.getElementById('chart');
+      if (!canvas || !canvas.getContext) return;
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      if (!w || !h) return;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      var ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+      var styles = getComputedStyle(root);
+      ctx.strokeStyle = styles.getPropertyValue('--chart-line').trim();
+      ctx.lineWidth = 1;
+      var islands = [
+        { x: 0.86, y: 0.18, r: 34, n: 5 },
+        { x: 1.04, y: 0.72, r: 46, n: 6 },
+        { x: 0.62, y: 1.06, r: 40, n: 5 },
+        { x: 0.10, y: 1.10, r: 44, n: 4 },
+        { x: 0.38, y: -0.12, r: 30, n: 4 }
+      ];
+      islands.forEach(function (isl, k) {
+        for (var i = 1; i <= isl.n; i++) {
+          var base = isl.r * i * 0.85;
+          ctx.beginPath();
+          for (var a = 0; a <= Math.PI * 2 + 0.09; a += 0.08) {
+            var wob = Math.sin(a * 3 + k * 2.1) * 6 +
+                      Math.sin(a * 5 + k) * 4 +
+                      Math.sin(a * 2 - k * 1.3) * 5;
+            var r = base + wob * (1 + i * 0.22);
+            var px = isl.x * w + Math.cos(a) * r;
+            var py = isl.y * h + Math.sin(a) * r * 0.8;
+            if (a === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+          }
+          ctx.stroke();
+        }
+      });
+      ctx.fillStyle = styles.getPropertyValue('--chart-text').trim();
+      ctx.font = '11px "SF Mono", Menlo, monospace';
+      [[0.52, 0.24, '23'], [0.70, 0.52, '17'], [0.44, 0.66, '31'],
+       [0.80, 0.90, '9'], [0.92, 0.44, '12'], [0.26, 0.30, '27'],
+       [0.14, 0.62, '14'], [0.60, 0.86, '19']].forEach(function (d) {
+        ctx.fillText(d[2], d[0] * w, d[1] * h);
+      });
+    }
+
+    function set(m) {
+      root.setAttribute('data-mode', m);
+      try { localStorage.setItem(KEY, m); } catch (e) {}
+      buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
+      drawChart();
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    set(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(drawChart, 150);
+    });
+
+    var u = ['corentin', 'sueur'].join('.');
+    var d = ['outlook', 'com'].join('.');
+    document.querySelectorAll('.email-link').forEach(function (a) {
+      a.textContent = 'Email';
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        location.href = 'mailto:' + u + '@' + d;
+      });
+    });
+
+    var y = document.getElementById('year');
+    if (y) { y.textContent = new Date().getFullYear(); }
+  })();
+</script>
+</body>
+</html>
