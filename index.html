@@ -64,15 +64,20 @@ a:hover { text-decoration: underline; }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 
 .top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+  padding: 14px 0;
   margin-bottom: 40px;
 }
 .wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
 a.wordmark { color: var(--ink); }
 a.wordmark:hover { text-decoration: none; color: var(--accent); }
-.top-nav { margin-left: auto; margin-right: 16px; }
+.top-nav { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
 .top-nav a {
   font-family: var(--mono);
   font-size: 12px;
@@ -179,6 +184,10 @@ h2::before { content: "— "; }
 .section-body { min-width: 0; }
 
 #about p { font-size: 18px; max-width: 60ch; }
+#about p, .story p, .section-intro, .prose > p, #beyond p, .prose li {
+  text-align: justify;
+  hyphens: auto;
+}
 
 .story + .story { margin-top: 44px; }
 .story-meta {
@@ -255,12 +264,19 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 #beyond p { max-width: 48ch; }
 .more-link { margin-top: 28px; font-family: var(--mono); font-size: 13px; }
 
-/* Off hours gallery */
+/* Off hours gallery — uniform 3:2 crops on a grid, aligned rows */
 .section-intro { max-width: 62ch; margin-bottom: 26px; }
-.gallery { columns: 3 240px; column-gap: 20px; }
-.gallery figure { break-inside: avoid; margin-bottom: 20px; }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+@media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+.gallery figure { margin: 0; }
 .gallery img {
   width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
   display: block;
   border-radius: 8px;
   border: 1px solid var(--hairline);
@@ -269,7 +285,25 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--muted);
-  margin-top: 7px;
+  margin-top: 8px;
+}
+
+/* Diagrams (ai.html) */
+.diagram { margin: 34px 0 8px; }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram .d-box { fill: var(--tag-bg); stroke: var(--hairline); }
+.diagram .d-box.d-accent { stroke: var(--accent); stroke-width: 1.5; }
+.diagram .d-rail { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; }
+.diagram .d-label { fill: var(--ink); }
+.diagram .d-note { fill: var(--muted); font-size: 10.5px; }
+.diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
+.diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
 }
 
 /* Prose pages (ai.html) */
@@ -453,7 +487,7 @@ footer {
             <div class="photo-slot filled">
               <img src="assets/winter.jpg" alt="An alpine skier in orange pants setting off under a blue sky" loading="lazy">
             </div>
-            <h3>On the ice</h3>
+            <h3>On the snow</h3>
             <p>
               Swedish winters converted me: long-distance skating on natural ice,
               cross-country skiing when the snow is right, alpine when it isn't.

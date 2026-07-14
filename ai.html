@@ -64,15 +64,20 @@ a:hover { text-decoration: underline; }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 
 .top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+  padding: 14px 0;
   margin-bottom: 40px;
 }
 .wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
 a.wordmark { color: var(--ink); }
 a.wordmark:hover { text-decoration: none; color: var(--accent); }
-.top-nav { margin-left: auto; margin-right: 16px; }
+.top-nav { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
 .top-nav a {
   font-family: var(--mono);
   font-size: 12px;
@@ -179,6 +184,10 @@ h2::before { content: "— "; }
 .section-body { min-width: 0; }
 
 #about p { font-size: 18px; max-width: 60ch; }
+#about p, .story p, .section-intro, .prose > p, #beyond p, .prose li {
+  text-align: justify;
+  hyphens: auto;
+}
 
 .story + .story { margin-top: 44px; }
 .story-meta {
@@ -255,12 +264,19 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 #beyond p { max-width: 48ch; }
 .more-link { margin-top: 28px; font-family: var(--mono); font-size: 13px; }
 
-/* Off hours gallery */
+/* Off hours gallery — uniform 3:2 crops on a grid, aligned rows */
 .section-intro { max-width: 62ch; margin-bottom: 26px; }
-.gallery { columns: 3 240px; column-gap: 20px; }
-.gallery figure { break-inside: avoid; margin-bottom: 20px; }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+@media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+.gallery figure { margin: 0; }
 .gallery img {
   width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
   display: block;
   border-radius: 8px;
   border: 1px solid var(--hairline);
@@ -269,7 +285,25 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--muted);
-  margin-top: 7px;
+  margin-top: 8px;
+}
+
+/* Diagrams (ai.html) */
+.diagram { margin: 34px 0 8px; }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram .d-box { fill: var(--tag-bg); stroke: var(--hairline); }
+.diagram .d-box.d-accent { stroke: var(--accent); stroke-width: 1.5; }
+.diagram .d-rail { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; }
+.diagram .d-label { fill: var(--ink); }
+.diagram .d-note { fill: var(--muted); font-size: 10.5px; }
+.diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
+.diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
 }
 
 /* Prose pages (ai.html) */
@@ -334,6 +368,42 @@ footer {
           so they're applied consistently, wiring guardrails so autonomy is safe,
           and measuring what helps so the practice improves like any other system.
         </p>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 264" role="img" aria-label="Diagram: an agent takes a ticket through plan, implement and self-review to a pull request; a skills layer feeds every step; telemetry loops back into the skills; a human owns review and merge.">
+            <g font-family="SF Mono, Menlo, monospace" font-size="11.5">
+              <rect x="8"   y="52" width="118" height="44" rx="8" class="d-box"/>
+              <text x="67"  y="78" text-anchor="middle" class="d-label">ticket</text>
+              <rect x="158" y="52" width="118" height="44" rx="8" class="d-box"/>
+              <text x="217" y="78" text-anchor="middle" class="d-label">plan</text>
+              <rect x="308" y="52" width="118" height="44" rx="8" class="d-box"/>
+              <text x="367" y="78" text-anchor="middle" class="d-label">implement</text>
+              <rect x="458" y="52" width="118" height="44" rx="8" class="d-box"/>
+              <text x="517" y="78" text-anchor="middle" class="d-label">self-review</text>
+              <rect x="608" y="52" width="104" height="44" rx="8" class="d-box d-accent"/>
+              <text x="660" y="78" text-anchor="middle" class="d-label">pull request</text>
+
+              <line x1="126" y1="74" x2="152" y2="74" class="d-arrow"/>
+              <line x1="276" y1="74" x2="302" y2="74" class="d-arrow"/>
+              <line x1="426" y1="74" x2="452" y2="74" class="d-arrow"/>
+              <line x1="576" y1="74" x2="602" y2="74" class="d-arrow"/>
+
+              <text x="660" y="30" text-anchor="middle" class="d-note">human owns review &amp; merge</text>
+              <line x1="660" y1="36" x2="660" y2="46" class="d-arrow"/>
+
+              <rect x="8" y="150" width="704" height="44" rx="8" class="d-rail"/>
+              <text x="360" y="176" text-anchor="middle" class="d-label">skills — architecture patterns · SDLC workflows · guardrails &amp; sandbox</text>
+
+              <line x1="217" y1="144" x2="217" y2="102" class="d-arrow"/>
+              <line x1="367" y1="144" x2="367" y2="102" class="d-arrow"/>
+              <line x1="517" y1="144" x2="517" y2="102" class="d-arrow"/>
+
+              <path d="M 660 102 C 660 232, 420 232, 380 200" fill="none" class="d-loop"/>
+              <text x="540" y="248" text-anchor="middle" class="d-note">telemetry — what got used, what helped</text>
+            </g>
+          </svg>
+          <figcaption>How a change ships: skills feed the agent at every step; telemetry feeds the skills.</figcaption>
+        </figure>
       </div>
     </section>
 
