@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://corentin-sueur.github.io/sitemap.xml
