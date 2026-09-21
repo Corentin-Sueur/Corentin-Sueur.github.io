@@ -300,6 +300,14 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 .diagram .d-cmd { fill: var(--accent); font-size: 10px; }
 .diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
 .diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram .d-life { stroke: var(--hairline); stroke-dasharray: 4 4; }
+.diagram .d-msg { stroke: var(--muted); stroke-width: 1.2; }
+.diagram .d-msg.d-return { stroke-dasharray: 5 4; }
+.diagram .d-head { fill: var(--muted); }
+.diagram .d-x { stroke: var(--accent); stroke-width: 1.6; }
+.diagram .d-mesh { stroke: var(--muted); stroke-width: 1; opacity: 0.4; }
+.diagram .d-ring { fill: none; stroke: var(--accent); stroke-width: 2; }
+.diagram .d-small { fill: var(--ink); font-size: 10.5px; }
 .diagram figcaption {
   font-family: var(--mono);
   font-size: 11.5px;
@@ -310,6 +318,13 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 
 /* Prose pages (ai.html) */
 .prose { max-width: 68ch; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--tag-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 .prose > p { margin-bottom: 18px; font-size: 17px; }
 .prose h3 { margin-top: 40px; margin-bottom: 12px; }
 .prose ul { margin: 0 0 18px 0; padding-left: 20px; }
@@ -373,39 +388,7 @@ footer {
         </p>
 
         <figure class="diagram">
-          <svg viewBox="0 0 720 210" role="img" aria-label="Diagram: an agent takes a ticket through plan, implement and self-review to a pull request; a skills layer feeds every step; a human owns review and merge.">
-            <g font-family="SF Mono, Menlo, monospace" font-size="11.5">
-              <rect x="8"   y="52" width="118" height="44" rx="8" class="d-box"/>
-              <text x="67"  y="78" text-anchor="middle" class="d-label">ticket</text>
-              <rect x="158" y="52" width="118" height="44" rx="8" class="d-box"/>
-              <text x="217" y="78" text-anchor="middle" class="d-label">plan</text>
-              <rect x="308" y="52" width="118" height="44" rx="8" class="d-box"/>
-              <text x="367" y="78" text-anchor="middle" class="d-label">implement</text>
-              <rect x="458" y="52" width="118" height="44" rx="8" class="d-box"/>
-              <text x="517" y="78" text-anchor="middle" class="d-label">self-review</text>
-              <rect x="608" y="52" width="104" height="44" rx="8" class="d-box d-accent"/>
-              <text x="660" y="78" text-anchor="middle" class="d-label">pull request</text>
-
-              <line x1="126" y1="74" x2="152" y2="74" class="d-arrow"/>
-              <line x1="276" y1="74" x2="302" y2="74" class="d-arrow"/>
-              <line x1="426" y1="74" x2="452" y2="74" class="d-arrow"/>
-              <line x1="576" y1="74" x2="602" y2="74" class="d-arrow"/>
-
-              <text x="660" y="30" text-anchor="middle" class="d-note">human owns review &amp; merge</text>
-              <line x1="660" y1="36" x2="660" y2="46" class="d-arrow"/>
-
-              <text x="67" y="116" text-anchor="middle" class="d-cmd">/start-ticket</text>
-              <text x="660" y="116" text-anchor="middle" class="d-cmd">/open-pr</text>
-
-              <rect x="8" y="150" width="704" height="44" rx="8" class="d-rail"/>
-              <text x="360" y="176" text-anchor="middle" class="d-label">skills — workflow spines · architecture patterns · guardrails &amp; sandbox</text>
-
-              <line x1="217" y1="144" x2="217" y2="102" class="d-arrow"/>
-              <line x1="367" y1="144" x2="367" y2="102" class="d-arrow"/>
-              <line x1="517" y1="144" x2="517" y2="102" class="d-arrow"/>
-
-            </g>
-          </svg>
+          <svg viewBox="0 0 720 198" role="img" aria-label="Diagram: an agent takes a ticket through plan, implement and self-review to a pull request; a skills layer feeds every step; a human owns review and merge."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="10" y="40" width="115.123" height="44" rx="8" class="d-box"/><text x="67.5614" y="66" text-anchor="middle" class="d-label">ticket</text><line x1="129.123" y1="62" x2="145.123" y2="62" class="d-msg"/><polygon class="d-head" points="147.123,62 140.123,58.5 140.123,65.5"/><rect x="151.123" y="40" width="115.123" height="44" rx="8" class="d-box"/><text x="208.684" y="66" text-anchor="middle" class="d-label">plan</text><line x1="270.245" y1="62" x2="286.245" y2="62" class="d-msg"/><polygon class="d-head" points="288.245,62 281.245,58.5 281.245,65.5"/><rect x="292.245" y="40" width="115.123" height="44" rx="8" class="d-box"/><text x="349.807" y="66" text-anchor="middle" class="d-label">implement</text><line x1="411.368" y1="62" x2="427.368" y2="62" class="d-msg"/><polygon class="d-head" points="429.368,62 422.368,58.5 422.368,65.5"/><rect x="433.368" y="40" width="121.119" height="44" rx="8" class="d-box"/><text x="493.928" y="66" text-anchor="middle" class="d-label">self-review</text><line x1="558.487" y1="62" x2="574.487" y2="62" class="d-msg"/><polygon class="d-head" points="576.487,62 569.487,58.5 569.487,65.5"/><rect x="580.487" y="40" width="129.513" height="44" rx="8" class="d-box d-accent"/><text x="645.243" y="66" text-anchor="middle" class="d-label">pull request</text><text x="632.5" y="18" text-anchor="middle" class="d-note">human owns review &amp; merge</text><line x1="645.243" y1="24" x2="645.243" y2="32" class="d-msg"/><polygon class="d-head" points="645.243,36 641.743,29 648.743,29"/><text x="67.5614" y="104" text-anchor="middle" class="d-cmd">/start-ticket</text><text x="645.243" y="104" text-anchor="middle" class="d-cmd">/open-pr</text><line x1="208.684" y1="90" x2="208.684" y2="136" class="d-msg"/><polygon class="d-head" points="208.684,140 205.184,133 212.184,133"/><line x1="349.807" y1="90" x2="349.807" y2="136" class="d-msg"/><polygon class="d-head" points="349.807,140 346.307,133 353.307,133"/><line x1="493.928" y1="90" x2="493.928" y2="136" class="d-msg"/><polygon class="d-head" points="493.928,140 490.428,133 497.428,133"/><rect x="10" y="144" width="700" height="44" rx="8" class="d-rail"/><text x="360" y="170" text-anchor="middle" class="d-label">skills — workflow spines · architecture patterns · guardrails &amp; sandbox</text></g></svg>
           <figcaption>How a change ships: skills feed the agent at every step; a human owns review and merge.</figcaption>
         </figure>
       </div>
@@ -417,7 +400,7 @@ footer {
         <h3>A skills platform</h3>
         <p>
           At Rebtel I founded and maintain an internal skills platform for Claude
-          Code: thirty-plus versioned, reviewed skills that encode how our backend
+          Code: eighty-plus versioned, reviewed skills that encode how our backend
           is actually built — the architectural patterns, the error-handling
           conventions, the testing strategy, the delivery pipeline. An agent picking
           up a task loads the same knowledge a senior teammate would explain at the
@@ -439,38 +422,7 @@ footer {
         </p>
 
         <figure class="diagram">
-          <svg viewBox="0 0 720 296" role="img" aria-label="Diagram: a tier of workflow skills (plan, ticket, implement, review, ship) delegates to a tier of pattern skills; a deterministic scaffold of commands, hooks and templates sits beneath; every skill is eval-tested.">
-            <g font-family="SF Mono, Menlo, monospace" font-size="11.5">
-              <text x="25" y="18" class="d-note">workflow skills — one orchestrator per phase, each owns a spine</text>
-              <rect x="25"  y="30" width="110" height="40" rx="8" class="d-box"/>
-              <text x="80"  y="54" text-anchor="middle" class="d-label">plan</text>
-              <rect x="165" y="30" width="110" height="40" rx="8" class="d-box"/>
-              <text x="220" y="54" text-anchor="middle" class="d-label">ticket</text>
-              <rect x="305" y="30" width="110" height="40" rx="8" class="d-box"/>
-              <text x="360" y="54" text-anchor="middle" class="d-label">implement</text>
-              <rect x="445" y="30" width="110" height="40" rx="8" class="d-box"/>
-              <text x="500" y="54" text-anchor="middle" class="d-label">review</text>
-              <rect x="585" y="30" width="110" height="40" rx="8" class="d-box"/>
-              <text x="640" y="54" text-anchor="middle" class="d-label">ship</text>
-              <line x1="135" y1="50" x2="159" y2="50" class="d-arrow"/>
-              <line x1="275" y1="50" x2="299" y2="50" class="d-arrow"/>
-              <line x1="415" y1="50" x2="439" y2="50" class="d-arrow"/>
-              <line x1="555" y1="50" x2="579" y2="50" class="d-arrow"/>
-
-              <line x1="220" y1="78" x2="220" y2="132" class="d-arrow"/>
-              <line x1="360" y1="78" x2="360" y2="132" class="d-arrow"/>
-              <line x1="500" y1="78" x2="500" y2="132" class="d-arrow"/>
-              <text x="376" y="110" class="d-note">delegates every "how"</text>
-
-              <rect x="25" y="140" width="670" height="44" rx="8" class="d-box"/>
-              <text x="360" y="166" text-anchor="middle" class="d-label">pattern skills — APIs · data · events · state machines · testing · delivery</text>
-
-              <rect x="25" y="214" width="670" height="40" rx="8" class="d-rail"/>
-              <text x="360" y="239" text-anchor="middle" class="d-label">deterministic scaffold — slash commands · git hooks · templates (warn, never block)</text>
-
-              <text x="360" y="284" text-anchor="middle" class="d-note">every skill ships eval-tested — red → green on real tasks · format ≠ behavior</text>
-            </g>
-          </svg>
+          <svg viewBox="0 0 720 278" role="img" aria-label="Diagram: a tier of workflow skills (plan, ticket, implement, review, ship) delegates to a tier of pattern skills; a deterministic scaffold of commands, hooks and templates sits beneath; every skill is eval-tested."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><text x="16" y="18" text-anchor="start" class="d-note">workflow skills — one orchestrator per phase, each owns a spine</text><rect x="10" y="38" width="119.2" height="44" rx="8" class="d-box"/><text x="69.6" y="64" text-anchor="middle" class="d-label">plan</text><line x1="133.2" y1="60" x2="149.2" y2="60" class="d-msg"/><polygon class="d-head" points="151.2,60 144.2,56.5 144.2,63.5"/><rect x="155.2" y="38" width="119.2" height="44" rx="8" class="d-box"/><text x="214.8" y="64" text-anchor="middle" class="d-label">ticket</text><line x1="278.4" y1="60" x2="294.4" y2="60" class="d-msg"/><polygon class="d-head" points="296.4,60 289.4,56.5 289.4,63.5"/><rect x="300.4" y="38" width="119.2" height="44" rx="8" class="d-box"/><text x="360" y="64" text-anchor="middle" class="d-label">implement</text><line x1="423.6" y1="60" x2="439.6" y2="60" class="d-msg"/><polygon class="d-head" points="441.6,60 434.6,56.5 434.6,63.5"/><rect x="445.6" y="38" width="119.2" height="44" rx="8" class="d-box"/><text x="505.2" y="64" text-anchor="middle" class="d-label">review</text><line x1="568.8" y1="60" x2="584.8" y2="60" class="d-msg"/><polygon class="d-head" points="586.8,60 579.8,56.5 579.8,63.5"/><rect x="590.8" y="38" width="119.2" height="44" rx="8" class="d-box"/><text x="650.4" y="64" text-anchor="middle" class="d-label">ship</text><line x1="214.8" y1="88" x2="214.8" y2="106" class="d-msg"/><polygon class="d-head" points="214.8,110 211.3,103 218.3,103"/><line x1="360" y1="88" x2="360" y2="106" class="d-msg"/><polygon class="d-head" points="360,110 356.5,103 363.5,103"/><line x1="505.2" y1="88" x2="505.2" y2="106" class="d-msg"/><polygon class="d-head" points="505.2,110 501.7,103 508.7,103"/><text x="370" y="98" text-anchor="start" class="d-note">delegates every "how"</text><rect x="10" y="114" width="700" height="44" rx="8" class="d-box"/><text x="360" y="140" text-anchor="middle" class="d-label">pattern skills — APIs · data · events · state machines · testing · delivery</text><rect x="10" y="190" width="700" height="44" rx="8" class="d-rail"/><text x="360" y="216" text-anchor="middle" class="d-label">deterministic scaffold — slash commands · git hooks · templates (warn, never block)</text><text x="360" y="260" text-anchor="middle" class="d-note">every skill ships eval-tested — red → green on real tasks · format ≠ behavior</text></g></svg>
           <figcaption>Two tiers of encoded knowledge, on a scaffold of plain scripts where judgment adds nothing.</figcaption>
         </figure>
 
@@ -485,6 +437,11 @@ footer {
           sit at the advisory end of it — tooling that warns gets adopted; tooling
           that blocks gets bypassed.
         </p>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 136" role="img" aria-label="The enforcement ladder, from advisory to blocking: templates, slash commands, git hooks that warn, CI gates, branch protection. A marker rings the advisory rungs — templates through hooks — where the practice deliberately lives."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="10" y="40" width="91.2887" height="40" rx="8" class="d-box"/><text x="55.6444" y="65" text-anchor="middle" class="d-label">templates</text><rect x="127.289" y="40" width="128.014" height="40" rx="8" class="d-box"/><text x="191.296" y="65" text-anchor="middle" class="d-label">slash commands</text><rect x="281.303" y="40" width="142.704" height="40" rx="8" class="d-box"/><text x="352.655" y="65" text-anchor="middle" class="d-label">git hooks — warn</text><rect x="450.007" y="40" width="83.9437" height="40" rx="8" class="d-box"/><text x="491.979" y="65" text-anchor="middle" class="d-label">CI gates</text><rect x="559.951" y="40" width="150.049" height="40" rx="8" class="d-box"/><text x="634.975" y="65" text-anchor="middle" class="d-label">branch protection</text><line x1="10" y1="104" x2="704" y2="104" class="d-msg"/><polygon class="d-head" points="710,104 703,100.5 703,107.5"/><text x="10" y="122" text-anchor="start" class="d-note">advisory — gets adopted</text><text x="710" y="122" text-anchor="end" class="d-note">blocking — gets bypassed</text><rect x="4" y="33" width="426.007" height="54" rx="12" class="d-ring"/><text x="217.004" y="24" text-anchor="middle" class="d-cmd">we live here — warns, never blocks</text></g></svg>
+          <figcaption>The enforcement ladder: the practice lives at the advisory end; the merge button keeps the hard gates.</figcaption>
+        </figure>
         <h3>The improvement loop, sandboxing — and evals</h3>
         <p>
           Three things made the practice trustworthy. Skill improvement lives inside
@@ -500,6 +457,11 @@ footer {
           looked rigorous but changed nothing the evals could measure; what mattered
           was stating the guard conditions completely. Format is not behavior.
         </p>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 308" role="img" aria-label="A loop of four steps: a skill loads into the session; the agent ships work; a gap or defect is exposed; the skill is revised in that same session, and the improved skill loads next time."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="264.2" y="32" width="191.6" height="28" rx="8" class="d-box"/><text x="360" y="50" text-anchor="middle" class="d-small">skill loads into the session</text><rect x="409.4" y="140" width="117.2" height="28" rx="8" class="d-box"/><text x="468" y="158" text-anchor="middle" class="d-small">agent ships work</text><rect x="285.9" y="248" width="148.2" height="28" rx="8" class="d-box"/><text x="360" y="266" text-anchor="middle" class="d-small">gap or defect exposed</text><rect x="156.2" y="140" width="191.6" height="28" rx="8" class="d-box"/><text x="252" y="158" text-anchor="middle" class="d-small">skill revised — same session</text><path d="M 417.231 62.4108 A 108 108 0 0 1 451.589 96.7687" fill="none" class="d-msg"/><polygon class="d-head" points="451.589,96.7687 444.589,93.2687 444.589,100.269" transform="rotate(58 451.589 96.7687)"/><path d="M 451.589 211.231 A 108 108 0 0 1 417.231 245.589" fill="none" class="d-msg"/><polygon class="d-head" points="417.231,245.589 410.231,242.089 410.231,249.089" transform="rotate(148 417.231 245.589)"/><path d="M 302.769 245.589 A 108 108 0 0 1 268.411 211.231" fill="none" class="d-msg"/><polygon class="d-head" points="268.411,211.231 261.411,207.731 261.411,214.731" transform="rotate(238 268.411 211.231)"/><path d="M 268.411 96.7687 A 108 108 0 0 1 302.769 62.4108" fill="none" class="d-msg"/><polygon class="d-head" points="302.769,62.4108 295.769,58.9108 295.769,65.9108" transform="rotate(328 302.769 62.4108)"/><text x="360" y="158" text-anchor="middle" class="d-note">one session</text></g></svg>
+          <figcaption>The loop that keeps skills true: the session that hits the gap ships the fix.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -514,6 +476,48 @@ footer {
           <li><strong>Treat prompts and skills as artifacts.</strong> Versioned, reviewed, evaluated — the same discipline as production code.</li>
           <li><strong>Advisory beats blocking.</strong> Guardrails that warn get adopted; gates that block get bypassed. Save the hard gates for CI and the merge button.</li>
         </ul>
+      </div>
+    </section>
+
+    <section id="playbook" class="section">
+      <h2>The playbook test</h2>
+      <div class="section-body prose">
+        <p>
+          In August 2026 Anthropic published
+          <a href="https://claude.com/blog/the-ai-native-sdlc-playbook">the AI-native
+          SDLC playbook</a> — six stages, from intent capture to autonomous
+          maintenance. When it landed, I did the only honest thing you can do with a
+          playbook: mapped our practice against it, item by item.
+        </p>
+        <p>
+          Most of it was already running here, built independently months earlier:
+          CLAUDE.md as institutional memory (ours since May), skills as versioned
+          policy (May, now eighty-plus of them in two tiers), planning that collapses
+          requirements and design into a skill-constrained spec with ADRs (June),
+          skills shipped eval-tested (June), an OS-level sandbox standard (June),
+          machine review passes before any human spends attention (July), parallel
+          worktrees with subagent fan-out throughout — and the lifecycle spine
+          itself: this very page described the two-tier workflow model, including
+          <code>/start-ticket</code> and <code>/open-pr</code>, five weeks before
+          the playbook was published, and merged pull requests carry those
+          annotations from spring onward. The receipts are public git timestamps,
+          not memories. Converging on a vendor's conclusions before reading them is
+          about the strongest external validation a practice can get.
+        </p>
+        <p>
+          One deliberate divergence survived contact with the article: the playbook
+          leans on hooks that <em>block</em>; we run guardrails that <em>warn</em>
+          (the ladder above) and keep the hard gates at CI and the merge button —
+          in our experience, adoption dies at the first false-positive block.
+        </p>
+        <p>
+          And the honest open list, straight from the playbook's later stages:
+          continuous evals in CI gating configuration changes (ours run when skills
+          change, not yet on a schedule), agents as non-interactive pipeline steps,
+          control-band monitoring that files its own findings, scheduled security
+          scans with validated results. That's the next year of the practice,
+          already written down.
+        </p>
       </div>
     </section>
 

@@ -300,6 +300,14 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 .diagram .d-cmd { fill: var(--accent); font-size: 10px; }
 .diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
 .diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram .d-life { stroke: var(--hairline); stroke-dasharray: 4 4; }
+.diagram .d-msg { stroke: var(--muted); stroke-width: 1.2; }
+.diagram .d-msg.d-return { stroke-dasharray: 5 4; }
+.diagram .d-head { fill: var(--muted); }
+.diagram .d-x { stroke: var(--accent); stroke-width: 1.6; }
+.diagram .d-mesh { stroke: var(--muted); stroke-width: 1; opacity: 0.4; }
+.diagram .d-ring { fill: none; stroke: var(--accent); stroke-width: 2; }
+.diagram .d-small { fill: var(--ink); font-size: 10.5px; }
 .diagram figcaption {
   font-family: var(--mono);
   font-size: 11.5px;
@@ -310,6 +318,13 @@ h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spac
 
 /* Prose pages (ai.html) */
 .prose { max-width: 68ch; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--tag-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 .prose > p { margin-bottom: 18px; font-size: 17px; }
 .prose h3 { margin-top: 40px; margin-bottom: 12px; }
 .prose ul { margin: 0 0 18px 0; padding-left: 20px; }
