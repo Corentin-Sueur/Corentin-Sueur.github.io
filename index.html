@@ -343,6 +343,11 @@ footer {
   gap: 16px;
 }
 .colophon { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 26px 0 22px; }
+.stat { border: 1px solid var(--hairline); background: var(--tag-bg); border-radius: 8px; padding: 14px 16px; }
+.stat b { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.1; color: var(--accent); margin-bottom: 6px; }
+.stat span { font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -368,7 +373,7 @@ footer {
     <span class="wordmark">Corentin Sueur</span>
     <nav class="top-nav" aria-label="Pages">
       <a href="ai.html">AI practice</a>
-      <a href="cercle.html">Field notes</a>
+      <a href="/field-notes/">Field notes</a>
       <a href="beyond.html">Off hours</a>
     </nav>
     <div class="mode-picker" role="group" aria-label="Color mode">
@@ -470,7 +475,7 @@ footer {
           </p>
           <p class="more-link">
             <a href="https://cercle.corentinsueur.com" rel="noopener" data-goatcounter-click="out-cercle">Explore the map →</a> ·
-            <a href="cercle.html">Read the field note →</a>
+            <a href="/field-notes/cercle.html">Read the field note →</a>
           </p>
         </article>
 

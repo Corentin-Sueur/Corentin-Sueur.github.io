@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mocking the world, one provider at a time — Corentin Sueur</title>
+<meta name="description" content="Field note 03: how one owned surface in front of every third-party provider lets integration environments mock, forward, call back and record per request.">
+<link rel="canonical" href="https://corentinsueur.com/field-notes/provider-mocks.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mocking the world, one provider at a time — Corentin Sueur">
+<meta property="og:description" content="Field note 03: how one owned surface in front of every third-party provider lets integration environments mock, forward, call back and record per request.">
+<meta property="og:url" content="https://corentinsueur.com/field-notes/provider-mocks.html">
+<meta property="og:image" content="https://corentinsueur.com/assets/travel.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<meta name="google-site-verification" content="imWR47jhO4o_wwAfaI8LzzupIL2xGVFc1-7Rpoh6o38">
+<style>
+/* Personal site — Archipelago tokens, nautical-chart editorial layout.
+   Modes: default follows prefers-color-scheme; [data-mode] (set by the Light/Dark
+   buttons) overrides in both directions. Signature: the depth-contour hero chart. */
+:root {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+  --display: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+    --hairline: #24344E; --tag-bg: #16233A;
+    --chart-line: rgba(125, 167, 242, 0.20);
+    --chart-text: rgba(143, 160, 188, 0.60);
+  }
+}
+:root[data-mode="dark"] {
+  --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+  --hairline: #24344E; --tag-bg: #16233A;
+  --chart-line: rgba(125, 167, 242, 0.20);
+  --chart-text: rgba(143, 160, 188, 0.60);
+}
+:root[data-mode="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+}
+
+html { background: var(--paper); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 32px 72px; }
+@media (max-width: 640px) { .wrap { padding: 20px 20px 56px; } }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+  padding: 14px 0;
+  margin-bottom: 40px;
+}
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+a.wordmark { color: var(--ink); }
+a.wordmark:hover { text-decoration: none; color: var(--accent); }
+.top-nav { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
+.top-nav a {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.top-nav a:hover { color: var(--accent); text-decoration: none; }
+.top-nav a[aria-current="page"] { color: var(--accent); }
+.mode-picker {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--tag-bg);
+}
+.mode-picker button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mode-picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mode-picker button.active { background: var(--accent); color: var(--paper); }
+
+/* Hero with the chart behind it */
+.hero {
+  position: relative;
+  padding: 72px 0 96px;
+  margin-bottom: 64px;
+}
+#chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero > :not(#chart) { position: relative; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(34px, 6.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.thesis { font-size: 19px; color: var(--muted); max-width: 52ch; margin-bottom: 30px; }
+.now {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+.now strong { color: var(--accent); font-weight: 600; }
+
+.links { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.links a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.links a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.links a.cv-link { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.links a.cv-link:hover { opacity: 0.9; }
+
+/* Label-rail sections */
+.section {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 24px 56px;
+  padding: 56px 0;
+  border-top: 1px solid var(--hairline);
+}
+@media (max-width: 760px) { .section { grid-template-columns: 1fr; padding: 40px 0; } }
+h2 {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+h2::before { content: "— "; }
+.section-body { min-width: 0; }
+
+#about p { font-size: 18px; max-width: 60ch; }
+#about p, .story p, .section-intro, .prose > p, #beyond p, .prose li {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.story + .story { margin-top: 44px; }
+.story-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.01em; margin-bottom: 10px; }
+.story p { max-width: 62ch; }
+
+.timeline { display: flex; flex-direction: column; gap: 18px; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: baseline;
+}
+.timeline .years {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.timeline .what { max-width: 64ch; }
+.timeline strong { font-family: var(--display); font-weight: 600; }
+@media (max-width: 520px) {
+  .timeline .row { grid-template-columns: 1fr; gap: 2px; }
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--tag-bg);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.beyond-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+}
+@media (max-width: 900px) { .beyond-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .beyond-grid { grid-template-columns: 1fr; } }
+.photo-slot {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(circle at 28% 72%, transparent 0 22px, var(--chart-line) 22px 23px),
+    repeating-radial-gradient(circle at 78% 20%, transparent 0 30px, var(--chart-line) 30px 31px),
+    var(--tag-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.photo-slot.filled { padding: 0; }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-slot span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+#beyond h3 { font-size: 20px; }
+#beyond p { max-width: 48ch; }
+.more-link { margin-top: 28px; font-family: var(--mono); font-size: 13px; }
+
+/* Off hours gallery — uniform 3:2 crops on a grid, aligned rows */
+.section-intro { max-width: 62ch; margin-bottom: 26px; }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+@media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+.gallery figure { margin: 0; }
+.gallery img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+}
+.gallery figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* Diagrams (ai.html) */
+.diagram { margin: 34px 0 8px; }
+.diagram img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid var(--hairline); }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram .d-box { fill: var(--tag-bg); stroke: var(--hairline); }
+.diagram .d-box.d-accent { stroke: var(--accent); stroke-width: 1.5; }
+.diagram .d-rail { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; }
+.diagram .d-label { fill: var(--ink); }
+.diagram .d-note { fill: var(--muted); font-size: 10.5px; }
+.diagram .d-cmd { fill: var(--accent); font-size: 10px; }
+.diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
+.diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram .d-life { stroke: var(--hairline); stroke-dasharray: 4 4; }
+.diagram .d-msg { stroke: var(--muted); stroke-width: 1.2; }
+.diagram .d-msg.d-return { stroke-dasharray: 5 4; }
+.diagram .d-head { fill: var(--muted); }
+.diagram .d-x { stroke: var(--accent); stroke-width: 1.6; }
+.diagram .d-mesh { stroke: var(--muted); stroke-width: 1; opacity: 0.4; }
+.diagram .d-ring { fill: none; stroke: var(--accent); stroke-width: 2; }
+.diagram .d-small { fill: var(--ink); font-size: 10.5px; }
+.diagram figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Prose pages (ai.html) */
+.prose { max-width: 68ch; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--tag-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.prose > p { margin-bottom: 18px; font-size: 17px; }
+.prose h3 { margin-top: 40px; margin-bottom: 12px; }
+.prose ul { margin: 0 0 18px 0; padding-left: 20px; }
+.prose li { margin-bottom: 8px; }
+.page-hero { padding: 48px 0 40px; }
+.page-hero h1 { font-size: clamp(30px, 5vw, 48px); max-width: 22ch; }
+
+footer {
+  border-top: 2px solid var(--accent);
+  padding-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.colophon { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 26px 0 22px; }
+.stat { border: 1px solid var(--hairline); background: var(--tag-bg); border-radius: 8px; padding: 14px 16px; }
+.stat b { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.1; color: var(--accent); margin-bottom: 6px; }
+.stat span { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<!-- Field note: provider mocks — assembled into output/site/provider-mocks.html by build.sh -->
+<div class="wrap">
+  <header class="top">
+    <a class="wordmark" href="/index.html">Corentin Sueur</a>
+    <nav class="top-nav" aria-label="Pages">
+      <a href="/ai.html">AI practice</a>
+      <a href="/field-notes/">Field notes</a>
+      <a href="/beyond.html">Off hours</a>
+    </nav>
+    <div class="mode-picker" role="group" aria-label="Color mode">
+      <button type="button" data-m="light">Light</button>
+      <button type="button" data-m="dark">Dark</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Field notes — 03</p>
+      <h1>Mocking the world, one provider at a time.</h1>
+      <p class="thesis">
+        <a href="/field-notes/test-environments.html">Field note 01</a> ended with a
+        test-environment API that owns state. This is its third act: the same
+        service now stands in front of every third-party provider our integration
+        environments talk to, and decides per request whether to answer from a
+        rule, forward to the real thing, call us back later, or let a running test
+        answer live. Here is what a mock has to get right before a team trusts it.
+      </p>
+    </section>
+
+    <section id="problem" class="section">
+      <h2>The problem</h2>
+      <div class="section-body prose">
+        <p>
+          Note 01 drew a hard line: no mocking the world. The suite's value is
+          that dev and stage run as deployed, third parties included. Two years
+          of living with that line taught me where it actually belongs. The
+          services, the queues and the databases must stay real. The HTTP call
+          that leaves the cluster for a top-up provider, a messaging platform or
+          a fraud-scoring service is a different matter.
+        </p>
+        <p>
+          Those calls cost real sandbox credit on every test run. Provider
+          sandboxes went down and took our pipeline with them, and some behaved
+          unlike production: one reported a state that never completes, so the
+          happy path could not even be exercised. And a test could not make a
+          provider misbehave on purpose. "What happens when the provider
+          declines" was the most important scenario we had, and the one we could
+          not run.
+        </p>
+        <p>
+          The reframing was the same as in note 01, one layer further out: the
+          edge where our traffic leaves the cluster is a surface, and nobody
+          owned it. Own it, and the decision to mock or forward stops being a
+          property of an environment and becomes a property of a request.
+        </p>
+      </div>
+    </section>
+
+    <section id="constraints" class="section">
+      <h2>Constraints</h2>
+      <div class="section-body prose">
+        <ul>
+          <li><strong>Per request, not per environment.</strong> The same
+            environment must forward one call to the real provider and answer
+            the next from a rule, with nothing redeployed in between.</li>
+          <li><strong>The apps change one line.</strong> A provider's base URL.
+            No test hooks in production code, no "if testing" branches.</li>
+          <li><strong>A test can make the provider do anything.</strong> Decline,
+            time out, answer with a specific body, and report the outcome later
+            through a callback, the way the real one does.</li>
+          <li><strong>A mock leaves evidence.</strong> What was answered, by which
+            rule, for which run. A reply nobody can trace is a reply nobody can
+            debug.</li>
+          <li><strong>Shared environment, isolated runs.</strong> A rule one test
+            arms must not surprise another test, and must not outlive its run.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="design" class="section">
+      <h2>The design</h2>
+      <div class="section-body prose">
+        <h3>One port per provider, one decision per call</h3>
+        <p>
+          Each provider gets its own port on the tool, and the app under test is
+          configured to call that port instead of the provider. Thirteen
+          providers sit behind it today, five of them fully mocked. Every call
+          then climbs the same ladder: a connected test gets the first chance to
+          answer, then the first matching rule, then a reply built in for that
+          provider, then the provider's default reply. When a port is armed and
+          nothing matches, the answer is a loud 500 that says so, never a quiet
+          forward to the real provider. A silent fallback is how a test suite
+          starts spending money again without anyone noticing.
+        </p>
+        <figure class="diagram">
+          <svg viewBox="0 0 720 136" role="img" aria-label="The resolution ladder for one intercepted provider call, from most specific to least: a live test handler answering over a stream, the first matching rule, a built-in reply, the provider's default reply, and finally a loud 500 when the port is armed but nothing matched. A marker rings the first two rungs, the ones a test controls per run."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="10" y="40" width="121.581" height="40" rx="8" class="d-box"/><text x="70.7903" y="65" text-anchor="middle" class="d-label">live test handler</text><rect x="157.581" y="40" width="133.484" height="40" rx="8" class="d-box"/><text x="224.322" y="65" text-anchor="middle" class="d-label">first matching rule</text><rect x="317.064" y="40" width="103.726" height="40" rx="8" class="d-box"/><text x="368.927" y="65" text-anchor="middle" class="d-label">built-in reply</text><rect x="446.79" y="40" width="97.7746" height="40" rx="8" class="d-box"/><text x="495.678" y="65" text-anchor="middle" class="d-label">default reply</text><rect x="570.565" y="40" width="139.435" height="40" rx="8" class="d-box"/><text x="640.282" y="65" text-anchor="middle" class="d-label">500 — armed, no rule</text><line x1="10" y1="104" x2="704" y2="104" class="d-msg"/><polygon class="d-head" points="710,104 703,100.5 703,107.5"/><text x="10" y="122" text-anchor="start" class="d-note">most specific — the test speaks</text><text x="710" y="122" text-anchor="end" class="d-note">catch-all — then fail loudly</text><rect x="4" y="33" width="293.064" height="54" rx="12" class="d-ring"/><text x="150.532" y="24" text-anchor="middle" class="d-cmd">per run — the test decides</text></g></svg>
+          <figcaption>The resolution ladder. The two left rungs belong to the running test; the rest belong to whoever maintains that provider's rules.</figcaption>
+        </figure>
+        <p>
+          Rules are expressions over the request: method, path, headers, body.
+          They run on <a href="https://github.com/microsoft/RulesEngine" rel="noopener">Microsoft RulesEngine</a>,
+          one workflow per provider, first match wins. Replies are Handlebars
+          templates that can read the request, so a mocked order confirmation
+          echoes the amount and the id it was asked about. A body without a
+          template marker is served as bytes, which matters more than it sounds;
+          see below.
+        </p>
+
+        <h3>How a request is answered</h3>
+        <p>
+          The part that surprised people most is the first rung. A system test
+          can open a long-lived stream to the tool and answer intercepted calls
+          itself, in test code, with the test's own variables in scope. No rule
+          to write, no state to clean up: when the test ends, the stream closes
+          and the rung disappears. For everything the test does not want to
+          handle, it says skip and the ladder continues.
+        </p>
+        <figure class="diagram">
+          <svg viewBox="0 0 720 400" role="img" aria-label="Sequence diagram: the app under test calls the provider's port on the interception tool. The call is offered first to any system test connected over a stream, which answers or skips. The tool then resolves a rule, a built-in reply or a default reply, forwards to the real provider only when a rule says so, queues any callback before the reply leaves, returns the mocked reply with Content-Length set, and records the exchange by port, rule and run."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="38" y="6" width="122" height="36" rx="8" class="d-box"/><text x="99" y="29" text-anchor="middle" class="d-label">app under test</text><line x1="99" y1="42" x2="99" y2="394" class="d-life"/><rect x="201.5" y="6" width="143" height="36" rx="8" class="d-box d-accent"/><text x="273" y="29" text-anchor="middle" class="d-label">interception tool</text><line x1="273" y1="42" x2="273" y2="394" class="d-life"/><rect x="387" y="6" width="120" height="36" rx="8" class="d-box"/><text x="447" y="29" text-anchor="middle" class="d-label">system test</text><line x1="447" y1="42" x2="447" y2="394" class="d-life"/><rect x="561" y="6" width="120" height="36" rx="8" class="d-box"/><text x="621" y="29" text-anchor="middle" class="d-label">real provider</text><line x1="621" y1="42" x2="621" y2="394" class="d-life"/><line x1="103" y1="66" x2="269" y2="66" class="d-msg"/><polygon class="d-head" points="269,66 262,62.5 262,69.5"/><text x="186" y="60" text-anchor="middle" class="d-note">call on the provider's port</text><line x1="277" y1="102" x2="443" y2="102" class="d-msg"/><polygon class="d-head" points="443,102 436,98.5 436,105.5"/><text x="360" y="96" text-anchor="middle" class="d-note">offered to a connected test first</text><line x1="443" y1="138" x2="277" y2="138" class="d-msg d-return"/><polygon class="d-head" points="277,138 284,134.5 284,141.5"/><text x="360" y="132" text-anchor="middle" class="d-note">answer — or skip</text><rect x="154.5" y="160" width="237" height="26" rx="6" class="d-box"/><text x="273" y="177" text-anchor="middle" class="d-label">rule → built-in → default reply</text><line x1="277" y1="210" x2="617" y2="210" class="d-msg"/><polygon class="d-head" points="617,210 610,206.5 610,213.5"/><text x="447" y="204" text-anchor="middle" class="d-note">forward only if a rule says so</text><line x1="617" y1="246" x2="277" y2="246" class="d-msg d-return"/><polygon class="d-head" points="277,246 284,242.5 284,249.5"/><text x="447" y="240" text-anchor="middle" class="d-note">streamed back</text><text x="273" y="286" text-anchor="middle" class="d-note">callback queued before the reply leaves</text><line x1="269" y1="318" x2="103" y2="318" class="d-msg d-return"/><polygon class="d-head" points="103,318 110,314.5 110,321.5"/><text x="186" y="312" text-anchor="middle" class="d-note">mocked reply, Content-Length set</text><text x="273" y="358" text-anchor="middle" class="d-note">recorded: by port, by rule, by run</text></g></svg>
+          <figcaption>One intercepted call, start to finish. Forwarding is a decision a rule makes, not a default the tool falls back to.</figcaption>
+        </figure>
+
+        <h3>Rules belong to runs</h3>
+        <p>
+          Hand-written rules live as a seed file in git, can be edited in the
+          browser with a hundred snapshots of history, and are loaded into the
+          in-memory engine at startup. The interesting rules are the other kind.
+          A test, or an agent, arms a rule for its run: the rule is appended to
+          the provider's list, named for the run, and registered as a tracked
+          entity of that run token. Appended, not inserted, so a hand-written
+          rule that matches the same call still wins and the tool tells you how
+          many stand ahead of yours. And because it is a tracked entity, the
+          teardown from note 01 removes it, whether the run ends politely or the
+          runner dies. The two notes are the same design, one layer apart.
+        </p>
+        <figure class="diagram">
+          <svg viewBox="0 0 720 204" role="img" aria-label="Diagram: hand-written rules start as a seed in git, are edited in a rule editor that keeps a hundred snapshots, run in an in-memory engine, and are written back to SQL within thirty seconds. Armed rules are appended to the engine per run and named for the run; the run's teardown removes them, the same teardown described in field note 01."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="10" y="40" width="115.482" height="44" rx="8" class="d-box"/><text x="67.7408" y="66" text-anchor="middle" class="d-label">seed in git</text><line x1="129.482" y1="62" x2="145.482" y2="62" class="d-msg"/><polygon class="d-head" points="147.482,62 140.482,58.5 140.482,65.5"/><rect x="151.482" y="40" width="195.518" height="44" rx="8" class="d-box"/><text x="249.241" y="66" text-anchor="middle" class="d-label">editor, 100 snapshots</text><line x1="351" y1="62" x2="367" y2="62" class="d-msg"/><polygon class="d-head" points="369,62 362,58.5 362,65.5"/><rect x="373" y="40" width="155.5" height="44" rx="8" class="d-box d-accent"/><text x="450.75" y="66" text-anchor="middle" class="d-label">engine in memory</text><line x1="532.5" y1="62" x2="548.5" y2="62" class="d-msg"/><polygon class="d-head" points="550.5,62 543.5,58.5 543.5,65.5"/><rect x="554.5" y="40" width="155.5" height="44" rx="8" class="d-box"/><text x="632.25" y="66" text-anchor="middle" class="d-label">SQL, within 30 s</text><text x="450.75" y="18" text-anchor="middle" class="d-note">armed rules — appended per run, named for the run</text><line x1="450.75" y1="24" x2="450.75" y2="32" class="d-msg"/><polygon class="d-head" points="450.75,36 447.25,29 454.25,29"/><line x1="450.75" y1="90" x2="450.75" y2="108" class="d-msg"/><polygon class="d-head" points="450.75,112 447.25,105 454.25,105"/><rect x="10" y="116" width="700" height="44" rx="8" class="d-rail"/><text x="360" y="142" text-anchor="middle" class="d-label">teardown of the run removes its armed rules — the same teardown as note 01</text><text x="360" y="186" text-anchor="middle" class="d-note">hand-written rules sit first in the list, so an armed rule can never override one</text></g></svg>
+          <figcaption>Where rules come from and where they go. The run token that owns fixtures owns rules too.</figcaption>
+        </figure>
+
+        <h3>The provider that calls you back</h3>
+        <p>
+          Some providers report the outcome later, by calling us: the top-up
+          completed, declined, reversed. A mock that only answers the request is
+          mocking half the provider. So a rule can carry a callback: a template,
+          a delay, and the values to fill in. The ordering is the whole trick.
+          The callback is queued before the mocked reply leaves, so a client
+          that immediately polls the status with the id it just received finds a
+          pending callback and gets "pending" back, exactly as it would from the
+          real provider. Then the callback fires at our service, through the same
+          public address it would use in production, hosts allow-listed, no
+          redirects, short timeout.
+        </p>
+        <figure class="diagram">
+          <svg viewBox="0 0 720 232" role="img" aria-label="Diagram: a provider call matches a rule that carries a callback; the callback is queued before the mocked reply leaves, so a client that polls the status with the returned id finds it pending; after the delay the callback fires at our service. States run pending, sending, then sent or failed, with no silent retry: a failed callback stays visible and can be replayed by hand."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="10" y="40" width="107.429" height="44" rx="8" class="d-box"/><text x="63.7147" y="66" text-anchor="middle" class="d-label">provider call</text><line x1="121.429" y1="62" x2="137.429" y2="62" class="d-msg"/><polygon class="d-head" points="139.429,62 132.429,58.5 132.429,65.5"/><rect x="143.429" y="40" width="120.508" height="44" rx="8" class="d-box d-accent"/><text x="203.683" y="66" text-anchor="middle" class="d-label">callback queued</text><line x1="267.937" y1="62" x2="283.937" y2="62" class="d-msg"/><polygon class="d-head" points="285.937,62 278.937,58.5 278.937,65.5"/><rect x="289.937" y="40" width="100.89" height="44" rx="8" class="d-box"/><text x="340.382" y="66" text-anchor="middle" class="d-label">mocked reply</text><line x1="394.828" y1="62" x2="410.828" y2="62" class="d-msg"/><polygon class="d-head" points="412.828,62 405.828,58.5 405.828,65.5"/><rect x="416.828" y="40" width="153.204" height="44" rx="8" class="d-box"/><text x="493.429" y="66" text-anchor="middle" class="d-label">status poll: pending</text><line x1="574.031" y1="62" x2="590.031" y2="62" class="d-msg"/><polygon class="d-head" points="592.031,62 585.031,58.5 585.031,65.5"/><rect x="596.031" y="40" width="113.969" height="44" rx="8" class="d-box"/><text x="653.016" y="66" text-anchor="middle" class="d-label">callback fires</text><text x="203.683" y="18" text-anchor="middle" class="d-note">before the reply leaves — so a poll finds it</text><line x1="203.683" y1="24" x2="203.683" y2="32" class="d-msg"/><polygon class="d-head" points="203.683,36 200.183,29 207.183,29"/><text x="493.429" y="104" text-anchor="middle" class="d-cmd">pending → sending → sent | failed</text><line x1="653.016" y1="90" x2="653.016" y2="136" class="d-msg"/><polygon class="d-head" points="653.016,140 649.516,133 656.516,133"/><rect x="10" y="144" width="700" height="44" rx="8" class="d-rail"/><text x="360" y="170" text-anchor="middle" class="d-label">no silent retry — a failed callback stays visible; replaying by hand sends a copy</text><text x="360" y="214" text-anchor="middle" class="d-note">allowed hosts only · no redirects · 15 s timeout</text></g></svg>
+          <figcaption>A callback's life. Queue first, reply second, or the poll that follows the reply has nothing to find.</figcaption>
+        </figure>
+        <p>
+          A failed callback does not retry on its own. It stays visible as
+          failed, with what was sent and what came back, and a human or an agent
+          can replay it, which sends a copy. The lesson from note 01 again: a
+          failure you can see beats a clean-looking lie, and an automatic retry
+          against a test environment is a very good way to manufacture one.
+        </p>
+
+        <h3>Evidence, kept twice</h3>
+        <p>
+          Every intercepted exchange is recorded for two readers with different
+          needs. A human debugging now wants the last few hundred calls on this
+          port, bodies included, and wants them this second: that is an in-memory
+          ring per port. A test or an agent wants "everything my run caused",
+          days later, by run token: that is a table in SQL, partitioned by month,
+          pruned on a schedule. Plain forwards to real providers are stored
+          without bodies, since no run can claim them and they are most of the
+          volume. The attribution rule is strict on purpose: a call answered by
+          a hand-written rule is never credited to a run, only calls answered by
+          rules the run armed.
+        </p>
+        <figure class="diagram">
+          <svg viewBox="0 0 720 136" role="img" aria-label="Two panels. In memory, for a human looking now: QA in a browser reads a ring buffer holding the last five hundred calls per port for sixty minutes, with full bodies. In SQL, for tests and agents: system tests and AI agents query monthly partitions, filtered by run token, kept one month, with plain forwards stored without bodies."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><text x="12" y="16" text-anchor="start" class="d-note">in memory — for a human looking now</text><rect x="10" y="34" width="109" height="24" rx="6" class="d-box"/><text x="64.5" y="50" text-anchor="middle" class="d-small">QA in a browser</text><rect x="257.6" y="34" width="90.4" height="24" rx="6" class="d-box"/><text x="302.8" y="50" text-anchor="middle" class="d-small">500 per port</text><rect x="257.6" y="66" width="90.4" height="24" rx="6" class="d-box"/><text x="302.8" y="82" text-anchor="middle" class="d-small">60 minutes</text><rect x="257.6" y="98" width="90.4" height="24" rx="6" class="d-box"/><text x="302.8" y="114" text-anchor="middle" class="d-small">full bodies</text><rect x="145.2" y="62" width="86.2" height="32" rx="8" class="d-box d-accent"/><text x="188.3" y="82" text-anchor="middle" class="d-small">ring buffer</text><path d="M 121 46 C 130.6 46 130.6 78 140.2 78" fill="none" class="d-msg"/><path d="M 233.4 78 C 242.5 78 242.5 46 251.6 46" fill="none" class="d-msg"/><polygon class="d-head" points="255.6,46 248.6,42.5 248.6,49.5"/><path d="M 233.4 78 C 242.5 78 242.5 78 251.6 78" fill="none" class="d-msg"/><polygon class="d-head" points="255.6,78 248.6,74.5 248.6,81.5"/><path d="M 233.4 78 C 242.5 78 242.5 110 251.6 110" fill="none" class="d-msg"/><polygon class="d-head" points="255.6,110 248.6,106.5 248.6,113.5"/><text x="374" y="16" text-anchor="start" class="d-note">in SQL — for tests and agents</text><rect x="372" y="34" width="90.4" height="24" rx="6" class="d-box"/><text x="417.2" y="50" text-anchor="middle" class="d-small">system tests</text><rect x="372" y="66" width="90.4" height="24" rx="6" class="d-box"/><text x="417.2" y="82" text-anchor="middle" class="d-small">AI agents</text><rect x="588.6" y="34" width="121.4" height="24" rx="6" class="d-box"/><text x="649.3" y="50" text-anchor="middle" class="d-small">by run token</text><rect x="588.6" y="66" width="121.4" height="24" rx="6" class="d-box"/><text x="649.3" y="82" text-anchor="middle" class="d-small">one month</text><rect x="588.6" y="98" width="121.4" height="24" rx="6" class="d-box"/><text x="649.3" y="114" text-anchor="middle" class="d-small">forwards: no body</text><rect x="485.5" y="62" width="80" height="32" rx="8" class="d-box d-accent"/><text x="525.5" y="82" text-anchor="middle" class="d-small">partitions</text><path d="M 464.4 46 C 472.45 46 472.45 78 480.5 78" fill="none" class="d-msg"/><path d="M 464.4 78 C 472.45 78 472.45 78 480.5 78" fill="none" class="d-msg"/><path d="M 567.5 78 C 575.05 78 575.05 46 582.6 46" fill="none" class="d-msg"/><polygon class="d-head" points="586.6,46 579.6,42.5 579.6,49.5"/><path d="M 567.5 78 C 575.05 78 575.05 78 582.6 78" fill="none" class="d-msg"/><polygon class="d-head" points="586.6,78 579.6,74.5 579.6,81.5"/><path d="M 567.5 78 C 575.05 78 575.05 110 582.6 110" fill="none" class="d-msg"/><polygon class="d-head" points="586.6,110 579.6,106.5 579.6,113.5"/></g></svg>
+          <figcaption>Two stores, two readers. The ring is for looking; the partitions are for proving.</figcaption>
+        </figure>
+
+        <h3>Agents at the same table</h3>
+        <p>
+          Note 01 mentioned that the API's OpenAPI document generates an MCP
+          toolset. The interception layer joined it: arming a rule, scheduling or
+          cancelling a callback, pulling a run's recorded traffic are tools an
+          agent calls by name, around forty in all, under the same run-token
+          accounting and the same keys. The browser got the same operations as a
+          page of one-click fixtures, and a dashboard that reads the test results
+          CI pushes to it, flags flaky tests and shows how far each deployment
+          lane is behind. Humans, CI and agents drive one surface, which is the
+          only reason the three stay in agreement.
+        </p>
+
+        <h3>The details that bit</h3>
+        <ul>
+          <li><strong>Content-Length is always set on a mock.</strong> One
+            provider's client re-sends a request whose reply arrived chunked.
+            In a top-up flow that is a duplicate top-up. Found the hard way.</li>
+          <li><strong>Mock the status the real provider sends, not the one the
+            sandbox sends.</strong> The sandbox that reported "submitted" forever
+            had quietly taught a test to accept it.</li>
+          <li><strong>Templates are not free.</strong> One provider's catalogue
+            is 47 MB. Rendering it through a template engine on every request was
+            the difference between a tool that idles at 300 MB and one the
+            cluster evicts. Static bodies are now served as bytes, compiled
+            templates are cached, and the common reply is 146 bytes.</li>
+          <li><strong>Never run two of it.</strong> Rules and pending callbacks
+            live in memory and are saved as whole sets, so two overlapping pods
+            would miss each other's rules and send callbacks twice. One replica,
+            recreate on deploy, written down where the next person will look.</li>
+          <li><strong>Partial mocks need explicit catch-alls.</strong> While a
+            provider is half mocked, its list ends with forward-everything rules.
+            Otherwise the armed-but-no-rule 500 fires on the first call nobody
+            thought of, which is correct and still ruins someone's afternoon.</li>
+          <li><strong>A QA tool is used at the end of bad days.</strong> The home
+            page has an arcade: Prod Invaders, Merge Conflict, Missile Command:
+            On Call. It costs nothing and it is the page people remember.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="solved" class="section">
+      <h2>What it solved</h2>
+      <div class="section-body prose">
+        <div class="stats" aria-label="Outcomes in numbers">
+          <div class="stat"><b>5 / 0</b><span>top-up providers fully mocked on dev, calls forwarded to them</span></div>
+          <div class="stat"><b>13</b><span>providers behind one surface, one port each</span></div>
+          <div class="stat"><b>~40</b><span>MCP tools an agent can call, under run-token accounting</span></div>
+          <div class="stat"><b>47 MB → 146 B</b><span>the common catalogue reply, before and after serving bytes</span></div>
+        </div>
+        <ul>
+          <li><strong>Dev stopped paying for tests.</strong> The five providers
+            that carried most of the traffic are answered locally. Sandbox
+            outages and rate limits left the critical path.</li>
+          <li><strong>The failure paths became tests.</strong> Declined, reversed,
+            timed out, called back late: each is a rule a test arms for its run,
+            and tears down with it.</li>
+          <li><strong>Every answer has a provenance.</strong> Which rule, which
+            run, which body. A red test on a mocked provider is debuggable from
+            the recorded exchange, not from guesswork.</li>
+          <li><strong>Three callers, still one surface.</strong> The suite, QA in
+            a browser and AI agents arm the same rules and read the same traffic.
+            Note 01's "three callers" problem did not come back.</li>
+        </ul>
+        <p>
+          The pattern underneath both notes is the same: find the state nobody
+          owns, give it an owner and a token, and make every failure visible.
+          Next in the series: deleting a monolith in waves.
+          Questions or war stories of your own:
+          <a href="#" class="email-link" data-goatcounter-click="click-email">email me</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="links" aria-label="Contact">
+      <a href="/index.html">← Home</a>
+      <a href="https://www.linkedin.com/in/corentin-sueur" data-goatcounter-click="out-linkedin">LinkedIn</a>
+      <a href="https://github.com/Corentin-Sueur" data-goatcounter-click="out-github">GitHub</a>
+      <a href="#" class="email-link" data-goatcounter-click="click-email">Email</a>
+      <a href="/cv.html" class="cv-link">View CV →</a>
+        <a href="/cv-corentin-sueur.pdf" download data-goatcounter-click="dl-cv-pdf">CV PDF ↓</a>
+    </nav>
+    <p class="colophon">Stockholm · <span id="year"></span></p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'site-mode';
+    var buttons = document.querySelectorAll('.mode-picker button');
+    function set(m) {
+      root.setAttribute('data-mode', m);
+      try { localStorage.setItem(KEY, m); } catch (e) {}
+      buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    set(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
+
+    var u = ['corentin', 'sueur'].join('.');
+    var d = ['outlook', 'com'].join('.');
+    document.querySelectorAll('.email-link').forEach(function (a) {
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        location.href = 'mailto:' + u + '@' + d;
+      });
+    });
+
+    var y = document.getElementById('year');
+    if (y) { y.textContent = new Date().getFullYear(); }
+  })();
+</script>
+<script data-goatcounter="https://corentin-sueur.goatcounter.com/count" async src="/assets/count.js"></script>
+<script async src="/assets/events.js"></script>
+</body>
+</html>

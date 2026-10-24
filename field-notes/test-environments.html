@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test environments as a product — Corentin Sueur</title>
+<meta name="description" content="Field note: replacing E2E setup/teardown sprawl with a test-environment API — run tokens, async teardown with recovery, one owned surface.">
+<link rel="canonical" href="https://corentinsueur.com/field-notes/test-environments.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Test environments as a product — Corentin Sueur">
+<meta property="og:description" content="Field note: replacing E2E setup/teardown sprawl with a test-environment API — run tokens, async teardown with recovery, one owned surface.">
+<meta property="og:url" content="https://corentinsueur.com/field-notes/test-environments.html">
+<meta property="og:image" content="https://corentinsueur.com/assets/travel.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<meta name="google-site-verification" content="imWR47jhO4o_wwAfaI8LzzupIL2xGVFc1-7Rpoh6o38">
+<style>
+/* Personal site — Archipelago tokens, nautical-chart editorial layout.
+   Modes: default follows prefers-color-scheme; [data-mode] (set by the Light/Dark
+   buttons) overrides in both directions. Signature: the depth-contour hero chart. */
+:root {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+  --display: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --body: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+    --hairline: #24344E; --tag-bg: #16233A;
+    --chart-line: rgba(125, 167, 242, 0.20);
+    --chart-text: rgba(143, 160, 188, 0.60);
+  }
+}
+:root[data-mode="dark"] {
+  --paper: #0B1526; --ink: #DCE4F2; --muted: #8FA0BC; --accent: #7DA7F2;
+  --hairline: #24344E; --tag-bg: #16233A;
+  --chart-line: rgba(125, 167, 242, 0.20);
+  --chart-text: rgba(143, 160, 188, 0.60);
+}
+:root[data-mode="light"] {
+  --paper: #FBFCFE; --ink: #12233F; --muted: #52627D; --accent: #2563EB;
+  --hairline: #D8E0EC; --tag-bg: #E9EFF8;
+  --chart-line: rgba(37, 99, 235, 0.16);
+  --chart-text: rgba(82, 98, 125, 0.55);
+}
+
+html { background: var(--paper); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 32px 72px; }
+@media (max-width: 640px) { .wrap { padding: 20px 20px 56px; } }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+  padding: 14px 0;
+  margin-bottom: 40px;
+}
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+a.wordmark { color: var(--ink); }
+a.wordmark:hover { text-decoration: none; color: var(--accent); }
+.top-nav { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
+.top-nav a {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.top-nav a:hover { color: var(--accent); text-decoration: none; }
+.top-nav a[aria-current="page"] { color: var(--accent); }
+.mode-picker {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--tag-bg);
+}
+.mode-picker button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mode-picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mode-picker button.active { background: var(--accent); color: var(--paper); }
+
+/* Hero with the chart behind it */
+.hero {
+  position: relative;
+  padding: 72px 0 96px;
+  margin-bottom: 64px;
+}
+#chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero > :not(#chart) { position: relative; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(34px, 6.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.thesis { font-size: 19px; color: var(--muted); max-width: 52ch; margin-bottom: 30px; }
+.now {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+.now strong { color: var(--accent); font-weight: 600; }
+
+.links { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.links a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.links a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.links a.cv-link { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.links a.cv-link:hover { opacity: 0.9; }
+
+/* Label-rail sections */
+.section {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 24px 56px;
+  padding: 56px 0;
+  border-top: 1px solid var(--hairline);
+}
+@media (max-width: 760px) { .section { grid-template-columns: 1fr; padding: 40px 0; } }
+h2 {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+h2::before { content: "— "; }
+.section-body { min-width: 0; }
+
+#about p { font-size: 18px; max-width: 60ch; }
+#about p, .story p, .section-intro, .prose > p, #beyond p, .prose li {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.story + .story { margin-top: 44px; }
+.story-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+h3 { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.01em; margin-bottom: 10px; }
+.story p { max-width: 62ch; }
+
+.timeline { display: flex; flex-direction: column; gap: 18px; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: baseline;
+}
+.timeline .years {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.timeline .what { max-width: 64ch; }
+.timeline strong { font-family: var(--display); font-weight: 600; }
+@media (max-width: 520px) {
+  .timeline .row { grid-template-columns: 1fr; gap: 2px; }
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--tag-bg);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.beyond-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+}
+@media (max-width: 900px) { .beyond-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .beyond-grid { grid-template-columns: 1fr; } }
+.photo-slot {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(circle at 28% 72%, transparent 0 22px, var(--chart-line) 22px 23px),
+    repeating-radial-gradient(circle at 78% 20%, transparent 0 30px, var(--chart-line) 30px 31px),
+    var(--tag-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.photo-slot.filled { padding: 0; }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-slot span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+#beyond h3 { font-size: 20px; }
+#beyond p { max-width: 48ch; }
+.more-link { margin-top: 28px; font-family: var(--mono); font-size: 13px; }
+
+/* Off hours gallery — uniform 3:2 crops on a grid, aligned rows */
+.section-intro { max-width: 62ch; margin-bottom: 26px; }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+@media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+.gallery figure { margin: 0; }
+.gallery img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+}
+.gallery figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* Diagrams (ai.html) */
+.diagram { margin: 34px 0 8px; }
+.diagram img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid var(--hairline); }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram .d-box { fill: var(--tag-bg); stroke: var(--hairline); }
+.diagram .d-box.d-accent { stroke: var(--accent); stroke-width: 1.5; }
+.diagram .d-rail { fill: none; stroke: var(--accent); stroke-dasharray: 4 4; }
+.diagram .d-label { fill: var(--ink); }
+.diagram .d-note { fill: var(--muted); font-size: 10.5px; }
+.diagram .d-cmd { fill: var(--accent); font-size: 10px; }
+.diagram .d-arrow { stroke: var(--muted); stroke-width: 1.2; marker-end: none; }
+.diagram .d-loop { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.diagram .d-life { stroke: var(--hairline); stroke-dasharray: 4 4; }
+.diagram .d-msg { stroke: var(--muted); stroke-width: 1.2; }
+.diagram .d-msg.d-return { stroke-dasharray: 5 4; }
+.diagram .d-head { fill: var(--muted); }
+.diagram .d-x { stroke: var(--accent); stroke-width: 1.6; }
+.diagram .d-mesh { stroke: var(--muted); stroke-width: 1; opacity: 0.4; }
+.diagram .d-ring { fill: none; stroke: var(--accent); stroke-width: 2; }
+.diagram .d-small { fill: var(--ink); font-size: 10.5px; }
+.diagram figcaption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Prose pages (ai.html) */
+.prose { max-width: 68ch; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--tag-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.prose > p { margin-bottom: 18px; font-size: 17px; }
+.prose h3 { margin-top: 40px; margin-bottom: 12px; }
+.prose ul { margin: 0 0 18px 0; padding-left: 20px; }
+.prose li { margin-bottom: 8px; }
+.page-hero { padding: 48px 0 40px; }
+.page-hero h1 { font-size: clamp(30px, 5vw, 48px); max-width: 22ch; }
+
+footer {
+  border-top: 2px solid var(--accent);
+  padding-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.colophon { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 26px 0 22px; }
+.stat { border: 1px solid var(--hairline); background: var(--tag-bg); border-radius: 8px; padding: 14px 16px; }
+.stat b { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.1; color: var(--accent); margin-bottom: 6px; }
+.stat span { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<!-- Field note: test environments as a product — assembled into output/site/test-environments.html by build.sh -->
+<div class="wrap">
+  <header class="top">
+    <a class="wordmark" href="/index.html">Corentin Sueur</a>
+    <nav class="top-nav" aria-label="Pages">
+      <a href="/ai.html">AI practice</a>
+      <a href="/field-notes/">Field notes</a>
+      <a href="/beyond.html">Off hours</a>
+    </nav>
+    <div class="mode-picker" role="group" aria-label="Color mode">
+      <button type="button" data-m="light">Light</button>
+      <button type="button" data-m="dark">Dark</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Field notes — 01</p>
+      <h1>Test environments as a product.</h1>
+      <p class="thesis">
+        Every E2E suite eventually reinvents a worse database administration tool.
+        This is the story of replacing ours with an API that treats test environments
+        as something you operate, not something you script.
+      </p>
+    </section>
+
+    <section id="problem" class="section">
+      <h2>The problem</h2>
+      <div class="section-body prose">
+        <p>
+          Our end-to-end tests run against real deployed environments — dozens of
+          microservices, message queues, third-party sandboxes. That part is right:
+          the point of an E2E suite is that nothing is faked. The part that had grown
+          wrong was everything <em>around</em> the tests: setup and teardown had
+          accreted, over years, into a sprawl of test controllers reaching directly
+          into a couple of dozen databases owned by other teams. Every new test
+          scenario added another direct-SQL shortcut, because the shortcut was always
+          locally cheaper than the right thing.
+        </p>
+        <p>
+          The costs were the usual ones, just compounding quietly. Test data leaked
+          between runs, so failures stopped meaning anything — a red test was as
+          likely stale state as a real bug, and the suite's credibility eroded until
+          a green badge told you almost nothing. Cleanup scripts knew the schemas of
+          systems they didn't own, so unrelated migrations broke the test suite
+          weekly. And nobody could answer the simplest operational question:
+          <strong>what did this test run create, and did it get cleaned up?</strong>
+        </p>
+        <p>
+          The realization that reframed the work: this isn't a testing problem, it's
+          an <strong>ownership</strong> problem. State creation and destruction
+          across twenty systems is a product surface — and we were maintaining it as
+          nobody's scripts.
+        </p>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 200" role="img" aria-label="Before and after: before, every consumer — the E2E suite, QA tooling, CI jobs, humans debugging — connects directly to every database, a mesh of crossing lines; after, the same consumers go through one test-environment API, which reaches the systems only through service contracts — an internal admin API and the public product API. The databases leave the picture."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><text x="12" y="16" text-anchor="start" class="d-note">before — every consumer holds every key</text><rect x="10" y="34" width="115.2" height="24" rx="6" class="d-box"/><text x="67.6" y="50" text-anchor="middle" class="d-small">E2E suite</text><rect x="10" y="66" width="115.2" height="24" rx="6" class="d-box"/><text x="67.6" y="82" text-anchor="middle" class="d-small">QA tooling</text><rect x="10" y="98" width="115.2" height="24" rx="6" class="d-box"/><text x="67.6" y="114" text-anchor="middle" class="d-small">CI jobs</text><rect x="10" y="130" width="115.2" height="24" rx="6" class="d-box"/><text x="67.6" y="146" text-anchor="middle" class="d-small">humans debugging</text><rect x="232.8" y="34" width="115.2" height="24" rx="6" class="d-box"/><text x="290.4" y="50" text-anchor="middle" class="d-small">users db</text><rect x="232.8" y="66" width="115.2" height="24" rx="6" class="d-box"/><text x="290.4" y="82" text-anchor="middle" class="d-small">orders db</text><rect x="232.8" y="98" width="115.2" height="24" rx="6" class="d-box"/><text x="290.4" y="114" text-anchor="middle" class="d-small">payments db</text><rect x="232.8" y="130" width="115.2" height="24" rx="6" class="d-box"/><text x="290.4" y="146" text-anchor="middle" class="d-small">subscriptions db</text><rect x="232.8" y="162" width="115.2" height="24" rx="6" class="d-box"/><text x="290.4" y="178" text-anchor="middle" class="d-small">… × 20</text><line x1="127.2" y1="46" x2="230.8" y2="46" class="d-mesh"/><line x1="127.2" y1="46" x2="230.8" y2="78" class="d-mesh"/><line x1="127.2" y1="46" x2="230.8" y2="110" class="d-mesh"/><line x1="127.2" y1="46" x2="230.8" y2="142" class="d-mesh"/><line x1="127.2" y1="46" x2="230.8" y2="174" class="d-mesh"/><line x1="127.2" y1="78" x2="230.8" y2="46" class="d-mesh"/><line x1="127.2" y1="78" x2="230.8" y2="78" class="d-mesh"/><line x1="127.2" y1="78" x2="230.8" y2="110" class="d-mesh"/><line x1="127.2" y1="78" x2="230.8" y2="142" class="d-mesh"/><line x1="127.2" y1="78" x2="230.8" y2="174" class="d-mesh"/><line x1="127.2" y1="110" x2="230.8" y2="46" class="d-mesh"/><line x1="127.2" y1="110" x2="230.8" y2="78" class="d-mesh"/><line x1="127.2" y1="110" x2="230.8" y2="110" class="d-mesh"/><line x1="127.2" y1="110" x2="230.8" y2="142" class="d-mesh"/><line x1="127.2" y1="110" x2="230.8" y2="174" class="d-mesh"/><line x1="127.2" y1="142" x2="230.8" y2="46" class="d-mesh"/><line x1="127.2" y1="142" x2="230.8" y2="78" class="d-mesh"/><line x1="127.2" y1="142" x2="230.8" y2="110" class="d-mesh"/><line x1="127.2" y1="142" x2="230.8" y2="142" class="d-mesh"/><line x1="127.2" y1="142" x2="230.8" y2="174" class="d-mesh"/><text x="374" y="16" text-anchor="start" class="d-note">after — one surface, zero connection strings</text><rect x="372" y="34" width="78" height="24" rx="6" class="d-box"/><text x="411" y="50" text-anchor="middle" class="d-small">E2E suite</text><rect x="372" y="66" width="78" height="24" rx="6" class="d-box"/><text x="411" y="82" text-anchor="middle" class="d-small">QA tooling</text><rect x="372" y="98" width="78" height="24" rx="6" class="d-box"/><text x="411" y="114" text-anchor="middle" class="d-small">CI jobs</text><rect x="372" y="130" width="78" height="24" rx="6" class="d-box"/><text x="411" y="146" text-anchor="middle" class="d-small">AI agents</text><rect x="625.8" y="34" width="84.2" height="24" rx="6" class="d-box"/><text x="667.9" y="50" text-anchor="middle" class="d-small">admin API</text><rect x="625.8" y="66" width="84.2" height="24" rx="6" class="d-box"/><text x="667.9" y="82" text-anchor="middle" class="d-small">product API</text><rect x="491.7" y="78" width="92.4" height="32" rx="8" class="d-box d-accent"/><text x="537.9" y="98" text-anchor="middle" class="d-small">test-env API</text><path d="M 452 46 C 469.35 46 469.35 94 486.7 94" fill="none" class="d-msg"/><path d="M 452 78 C 469.35 78 469.35 94 486.7 94" fill="none" class="d-msg"/><path d="M 452 110 C 469.35 110 469.35 94 486.7 94" fill="none" class="d-msg"/><path d="M 452 142 C 469.35 142 469.35 94 486.7 94" fill="none" class="d-msg"/><path d="M 586.1 94 C 602.95 94 602.95 46 619.8 46" fill="none" class="d-msg"/><polygon class="d-head" points="623.8,46 616.8,42.5 616.8,49.5"/><path d="M 586.1 94 C 602.95 94 602.95 78 619.8 78" fill="none" class="d-msg"/><polygon class="d-head" points="623.8,78 616.8,74.5 616.8,81.5"/></g></svg>
+          <figcaption>Same consumers, same databases — the difference is one owned surface in the middle.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="constraints" class="section">
+      <h2>Constraints</h2>
+      <div class="section-body prose">
+        <ul>
+          <li><strong>Real environments, real integrations.</strong> No mocking the
+            world — the suite's whole value is that dev and stage are exercised as
+            deployed, third parties included.</li>
+          <li><strong>Multiple consumers.</strong> The same setup/teardown operations
+            were needed by the automated suite, by internal QA tooling, and by humans
+            debugging — three callers, three auth stories, one truth.</li>
+          <li><strong>No central key to everything.</strong> Secrets and database
+            access are granted per service; a test client that needs twenty
+            connection strings is a security smell and an operational liability.</li>
+          <li><strong>Teardown must survive chaos.</strong> Test runners die mid-run,
+            CI jobs get cancelled, networks flake. Cleanup that only happens when the
+            test finishes politely is cleanup that doesn't happen.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="design" class="section">
+      <h2>The design</h2>
+      <div class="section-body prose">
+        <h3>An API, not a library</h3>
+        <p>
+          The core decision: a standalone <strong>test-environment service</strong> —
+          a small REST API that is the only thing allowed to touch other systems'
+          state for test purposes. Consumers say <em>what</em> they need ("a
+          signed-up user in market X", "this order archived"); the service owns
+          <em>how</em> — and every <em>how</em> is a service contract: the public
+          product API where a real user journey exists, an internal admin API where
+          one doesn't. No consumer holds a database connection string anymore; the
+          schema knowledge that was scattered across the suite now sits behind one
+          deployable with one owner, one audit trail, and one place to fix when a
+          contract moves. A library could have deduplicated the code; only a service
+          could deduplicate the <em>access</em>.
+        </p>
+
+        <h3>Run tokens: state gets an owner</h3>
+        <p>
+          Every test run starts by acquiring a <strong>run token</strong>, and every
+          resource the service creates is stamped with it. That one convention turns
+          three impossible questions into queries: what does this run own, what did
+          it leave behind, and what is safe to destroy. Teardown stops being "each
+          test remembers to undo itself" and becomes "destroy everything stamped with
+          this token" — a set operation against an inventory, not a prayer.
+        </p>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 400" role="img" aria-label="Sequence diagram: the test runner acquires a run token from the test-environment API and creates fixtures through it; the API reaches the systems under test only through service contracts — admin and product APIs, never SQL — and returns resources stamped with the token; the runner runs tests against the live environment and may die at any point; the API still queues teardown per token and runs asynchronous cleanup through the same contracts, retried until verified."><g font-family="SF Mono, Menlo, monospace" font-size="11.5"><rect x="68" y="6" width="120" height="36" rx="8" class="d-box"/><text x="128" y="29" text-anchor="middle" class="d-label">test runner</text><line x1="128" y1="42" x2="128" y2="394" class="d-life"/><rect x="278" y="6" width="164" height="36" rx="8" class="d-box d-accent"/><text x="360" y="29" text-anchor="middle" class="d-label">test-environment API</text><line x1="360" y1="42" x2="360" y2="394" class="d-life"/><rect x="517" y="6" width="150" height="36" rx="8" class="d-box"/><text x="592" y="29" text-anchor="middle" class="d-label">systems under test</text><line x1="592" y1="42" x2="592" y2="394" class="d-life"/><line x1="132" y1="66" x2="356" y2="66" class="d-msg"/><polygon class="d-head" points="356,66 349,62.5 349,69.5"/><text x="244" y="60" text-anchor="middle" class="d-note">acquire run token</text><line x1="356" y1="102" x2="132" y2="102" class="d-msg d-return"/><polygon class="d-head" points="132,102 139,98.5 139,105.5"/><text x="244" y="96" text-anchor="middle" class="d-note">token</text><line x1="132" y1="138" x2="356" y2="138" class="d-msg"/><polygon class="d-head" points="356,138 349,134.5 349,141.5"/><text x="244" y="132" text-anchor="middle" class="d-note">create fixtures (user, order, …)</text><line x1="364" y1="174" x2="588" y2="174" class="d-msg"/><polygon class="d-head" points="588,174 581,170.5 581,177.5"/><text x="476" y="168" text-anchor="middle" class="d-note">admin &amp; product APIs — never SQL</text><line x1="356" y1="210" x2="132" y2="210" class="d-msg d-return"/><polygon class="d-head" points="132,210 139,206.5 139,213.5"/><text x="244" y="204" text-anchor="middle" class="d-note">resources, stamped with the token</text><rect x="12" y="232" width="286" height="26" rx="6" class="d-box"/><text x="155" y="249" text-anchor="middle" class="d-label">run tests against the live environment</text><line x1="121" y1="275" x2="135" y2="289" class="d-x"/><line x1="121" y1="289" x2="135" y2="275" class="d-x"/><text x="142" y="286" text-anchor="start" class="d-note">runner may die here — fine</text><text x="360" y="322" text-anchor="middle" class="d-note">teardown queued per run token</text><line x1="364" y1="354" x2="588" y2="354" class="d-msg"/><polygon class="d-head" points="588,354 581,350.5 581,357.5"/><text x="476" y="348" text-anchor="middle" class="d-note">async cleanup — retried, resumes, verified</text></g></svg>
+          <figcaption>The run lifecycle: cleanup is owed by the system, not performed by the test.</figcaption>
+        </figure>
+
+        <h3>Asynchronous teardown, with recovery</h3>
+        <p>
+          Teardown is a background job the service owes, not a phase the test
+          performs. The runner can vanish at any point; the token's cleanup still
+          runs, retries on transient failure, and — the part that took the most
+          iterations — <strong>recovers</strong>: a teardown interrupted halfway
+          (deploy, crash, timeout) resumes from its recorded state instead of leaving
+          a half-deleted fixture that no later pass understands. Cleanup state is
+          explicit and persisted, because "we'll just run the deletes again" is
+          exactly how half-deleted state gets created in the first place. And when a
+          cleanup genuinely fails, the fixture doesn't vanish into silence — it
+          surfaces as a first-class <em>orphan</em>, a list someone can act on. A
+          failure you can see beats a clean-looking lie.
+        </p>
+
+        <h3>Boring, deliberately</h3>
+        <p>
+          Minimal API, one small bookkeeping database of its own for run tokens and
+          teardown state — and not a single connection string to anyone else's
+          database: cleanup travels the same service contracts as setup. The
+          interesting engineering is in the contract and the failure modes, not the
+          stack — a test tool that needs babysitting has failed at its one job.
+        </p>
+
+        <h3>Where it went next</h3>
+        <p>
+          The API's second act was becoming an <strong>agent surface</strong>: its
+          own OpenAPI document now generates an MCP toolset, so AI agents drive the
+          exact operations the test suite uses — create a user, add credit, observe
+          a ledger until a condition holds, tear a run down — through the same
+          contracts, under the same run-token accounting. Observation endpoints grew
+          <em>wait-for</em> semantics so a test (or an agent) awaits state
+          convergence instead of sleeping, and the QA dashboard moved into the same
+          process so humans, CI and agents share one surface. None of this was in
+          the original design; all of it fell out of the decision to build an API
+          instead of a script pile.
+          The third act, standing in for the providers themselves, is
+          <a href="/field-notes/provider-mocks.html">field note 03</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="solved" class="section">
+      <h2>What it solved</h2>
+      <div class="section-body prose">
+        <ul>
+          <li><strong>Red means something again.</strong> With state scoped per run,
+            a failing test points at the code, not at last Tuesday's leftovers.</li>
+          <li><strong>Schema changes stopped breaking the suite from a distance</strong> —
+            the blast radius of a migration is now one service that owns the affected
+            operation, found by its owner in one place.</li>
+          <li><strong>The access story became defensible</strong>: one audited
+            service holds the sensitive reach into other systems, instead of every
+            test runner holding a keyring.</li>
+          <li><strong>Humans got a tool for free.</strong> Because it's an API, QA
+            tooling and one-off debugging use the same operations as CI — the "three
+            callers" problem dissolved into one surface.</li>
+        </ul>
+        <p>
+          More notes in this series as the work ships — the skills platform and a
+          rebuild of an accounting core are next. Questions or war stories of your
+          own: <a href="#" class="email-link" data-goatcounter-click="click-email">email me</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="links" aria-label="Contact">
+      <a href="/index.html">← Home</a>
+      <a href="https://www.linkedin.com/in/corentin-sueur" data-goatcounter-click="out-linkedin">LinkedIn</a>
+      <a href="https://github.com/Corentin-Sueur" data-goatcounter-click="out-github">GitHub</a>
+      <a href="#" class="email-link" data-goatcounter-click="click-email">Email</a>
+      <a href="/cv.html" class="cv-link">View CV →</a>
+        <a href="/cv-corentin-sueur.pdf" download data-goatcounter-click="dl-cv-pdf">CV PDF ↓</a>
+    </nav>
+    <p class="colophon">Stockholm · <span id="year"></span></p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'site-mode';
+    var buttons = document.querySelectorAll('.mode-picker button');
+    function set(m) {
+      root.setAttribute('data-mode', m);
+      try { localStorage.setItem(KEY, m); } catch (e) {}
+      buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.m === m); });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    set(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    buttons.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.m); }); });
+
+    var u = ['corentin', 'sueur'].join('.');
+    var d = ['outlook', 'com'].join('.');
+    document.querySelectorAll('.email-link').forEach(function (a) {
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        location.href = 'mailto:' + u + '@' + d;
+      });
+    });
+
+    var y = document.getElementById('year');
+    if (y) { y.textContent = new Date().getFullYear(); }
+  })();
+</script>
+<script data-goatcounter="https://corentin-sueur.goatcounter.com/count" async src="/assets/count.js"></script>
+<script async src="/assets/events.js"></script>
+</body>
+</html>
