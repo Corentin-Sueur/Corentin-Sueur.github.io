@@ -348,6 +348,23 @@ footer {
 .stat { border: 1px solid var(--hairline); background: var(--tag-bg); border-radius: 8px; padding: 14px 16px; }
 .stat b { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.1; color: var(--accent); margin-bottom: 6px; }
 .stat span { font-size: 13px; color: var(--muted); }
+
+.consent {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 50;
+  max-width: 540px; margin: 0 auto; padding: 16px 18px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--hairline); border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  font-size: 14px; line-height: 1.5;
+}
+.consent p { margin: 0 0 10px; text-align: left; }
+.consent-title { font-weight: 600; }
+.consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.consent button {
+  font: inherit; padding: 7px 16px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--hairline); background: transparent; color: var(--ink);
+}
+.consent button[data-consent="accept"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 </style>
 </head>
 <body>
@@ -372,6 +389,7 @@ footer {
   <header class="top">
     <span class="wordmark">Corentin Sueur</span>
     <nav class="top-nav" aria-label="Pages">
+      <a href="#projects">Projects</a>
       <a href="ai.html">AI practice</a>
       <a href="/field-notes/">Field notes</a>
       <a href="beyond.html">Off hours</a>
@@ -401,6 +419,7 @@ footer {
         <a href="#" class="email-link" data-goatcounter-click="click-email">Email</a>
         <a href="cv.html" class="cv-link">View CV →</a>
         <a href="cv-corentin-sueur.pdf" download data-goatcounter-click="dl-cv-pdf">CV PDF ↓</a>
+        <a href="#projects">Side projects ↓</a>
       </nav>
     </section>
 
@@ -476,6 +495,20 @@ footer {
           <p class="more-link">
             <a href="https://cercle.corentinsueur.com" rel="noopener" data-goatcounter-click="out-cercle">Explore the map →</a> ·
             <a href="/field-notes/cercle.html">Read the field note →</a>
+          </p>
+        </article>
+
+        <article class="story">
+          <p class="story-meta">2026 — ongoing · rowing · Android</p>
+          <h3>Takt</h3>
+          <p>
+            A free SpeedCoach for Android, made for my rowing club: stroke rate,
+            split and distance from the phone's GPS and accelerometer, pieces
+            and workouts, a heart-rate strap, and a Concept2 PM5 over Bluetooth
+            for erg sessions and races. No account, no ads, GPL-3.0.
+          </p>
+          <p class="more-link">
+            <a href="https://takt.corentinsueur.com" rel="noopener" data-goatcounter-click="out-takt">Manual and download →</a>
           </p>
         </article>
 
@@ -594,6 +627,7 @@ footer {
         <a href="cv-corentin-sueur.pdf" download data-goatcounter-click="dl-cv-pdf">CV PDF ↓</a>
     </nav>
     <p class="colophon">Stockholm · built from the same data as my CV · <span id="year"></span></p>
+    <p class="colophon">Visits are counted by GoatCounter and PostHog in the EU. Cookies, replay and heatmaps only if you accept: <a href="#" data-analytics-choice>change your choice</a>.</p>
   </footer>
 </div>
 
@@ -683,5 +717,6 @@ footer {
 </script>
 <script data-goatcounter="https://corentin-sueur.goatcounter.com/count" async src="/assets/count.js"></script>
 <script async src="/assets/events.js"></script>
+<script async src="/assets/measure.js" data-token="phc_uqkPPV6nmZNTXvLzGwRRzxXNH4mDymN4vGTUTnHEhoHh" data-site="home"></script>
 </body>
 </html>
