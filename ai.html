@@ -619,10 +619,8 @@ footer {
     var d = ['outlook', 'com'].join('.');
     document.querySelectorAll('.email-link').forEach(function (a) {
       if (a.textContent === 'Email') { a.textContent = 'Email'; }
-      a.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        location.href = 'mailto:' + u + '@' + d;
-      });
+      a.href = 'mailto:' + u + '@' + d;
+      a.title = u + '@' + d;
     });
 
     var y = document.getElementById('year');

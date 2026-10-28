@@ -533,10 +533,8 @@ footer {
     var u = ['corentin', 'sueur'].join('.');
     var d = ['outlook', 'com'].join('.');
     document.querySelectorAll('.email-link').forEach(function (a) {
-      a.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        location.href = 'mailto:' + u + '@' + d;
-      });
+      a.href = 'mailto:' + u + '@' + d;
+      a.title = u + '@' + d;
     });
 
     var y = document.getElementById('year');
