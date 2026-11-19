@@ -28,7 +28,11 @@
     box.className = 'consent';
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-labelledby', 'consent-title');
-    box.innerHTML =
+    var sv = /^sv/i.test(root.lang || '');
+    box.innerHTML = sv ?
+      '<p class="consent-title" id="consent-title">Besöksräkning</p>' +
+      '<p>Den här sidan använder PostHog, med servrar i EU, för att se hur den används. Godkänner du kopplas dina besök ihop över flera dagar med en kaka, sparas med din IP-adress, och sessioner kan spelas upp för att rätta det som är otydligt. Avböjer du sparas bara anonyma räkningar utan kakor. Inget säljs eller delas.</p>' +
+      '<div class="consent-actions"><button type="button" data-consent="decline">Avböj</button><button type="button" data-consent="accept">Godkänn</button></div>' :
       '<p class="consent-title" id="consent-title">Visit counting</p>' +
       '<p>This site uses PostHog, hosted in the EU, to see how it is used. Accept and your visits are linked across days with a cookie, kept with your IP address, and sessions may be replayed to fix what is confusing. Decline and only anonymous, cookieless counts are kept. Nothing is sold or shared.</p>' +
       '<div class="consent-actions"><button type="button" data-consent="decline">Decline</button><button type="button" data-consent="accept">Accept</button></div>';
@@ -51,6 +55,7 @@
     if (!p || typeof p.init !== 'function') return;
     ph = p.init(token, {
       api_host: host,
+      ui_host: 'https://eu.posthog.com',
       defaults: '2026-05-30',
       cookieless_mode: 'on_reject',
       opt_out_capturing_by_default: true,
